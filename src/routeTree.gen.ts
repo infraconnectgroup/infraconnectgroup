@@ -17,7 +17,11 @@ import { Route as LidmaatschapRouteImport } from './routes/lidmaatschap'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AanmeldenRouteImport } from './routes/aanmelden'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortaalIndexRouteImport } from './routes/portaal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as PortaalProfielRouteImport } from './routes/portaal.profiel'
+import { Route as PortaalLedenRouteImport } from './routes/portaal.leden'
+import { Route as PortaalAgendaRouteImport } from './routes/portaal.agenda'
 
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
@@ -59,9 +63,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortaalIndexRoute = PortaalIndexRouteImport.update({
+  id: '/portaal/',
+  path: '/portaal/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortaalProfielRoute = PortaalProfielRouteImport.update({
+  id: '/portaal/profiel',
+  path: '/portaal/profiel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortaalLedenRoute = PortaalLedenRouteImport.update({
+  id: '/portaal/leden',
+  path: '/portaal/leden',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortaalAgendaRoute = PortaalAgendaRouteImport.update({
+  id: '/portaal/agenda',
+  path: '/portaal/agenda',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -74,7 +98,11 @@ export interface FileRoutesByFullPath {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/portaal/agenda': typeof PortaalAgendaRoute
+  '/portaal/leden': typeof PortaalLedenRoute
+  '/portaal/profiel': typeof PortaalProfielRoute
   '/admin/': typeof AdminIndexRoute
+  '/portaal/': typeof PortaalIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,7 +113,11 @@ export interface FileRoutesByTo {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/portaal/agenda': typeof PortaalAgendaRoute
+  '/portaal/leden': typeof PortaalLedenRoute
+  '/portaal/profiel': typeof PortaalProfielRoute
   '/admin': typeof AdminIndexRoute
+  '/portaal': typeof PortaalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,7 +129,11 @@ export interface FileRoutesById {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/portaal/agenda': typeof PortaalAgendaRoute
+  '/portaal/leden': typeof PortaalLedenRoute
+  '/portaal/profiel': typeof PortaalProfielRoute
   '/admin/': typeof AdminIndexRoute
+  '/portaal/': typeof PortaalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,7 +146,11 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/portaal/agenda'
+    | '/portaal/leden'
+    | '/portaal/profiel'
     | '/admin/'
+    | '/portaal/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -121,7 +161,11 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/portaal/agenda'
+    | '/portaal/leden'
+    | '/portaal/profiel'
     | '/admin'
+    | '/portaal'
   id:
     | '__root__'
     | '/'
@@ -132,7 +176,11 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/portaal/agenda'
+    | '/portaal/leden'
+    | '/portaal/profiel'
     | '/admin/'
+    | '/portaal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -144,7 +192,11 @@ export interface RootRouteChildren {
   MissieVisieRoute: typeof MissieVisieRoute
   OverOnsRoute: typeof OverOnsRoute
   PrivacyRoute: typeof PrivacyRoute
+  PortaalAgendaRoute: typeof PortaalAgendaRoute
+  PortaalLedenRoute: typeof PortaalLedenRoute
+  PortaalProfielRoute: typeof PortaalProfielRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  PortaalIndexRoute: typeof PortaalIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -205,11 +257,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portaal/': {
+      id: '/portaal/'
+      path: '/portaal'
+      fullPath: '/portaal/'
+      preLoaderRoute: typeof PortaalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portaal/profiel': {
+      id: '/portaal/profiel'
+      path: '/portaal/profiel'
+      fullPath: '/portaal/profiel'
+      preLoaderRoute: typeof PortaalProfielRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portaal/leden': {
+      id: '/portaal/leden'
+      path: '/portaal/leden'
+      fullPath: '/portaal/leden'
+      preLoaderRoute: typeof PortaalLedenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portaal/agenda': {
+      id: '/portaal/agenda'
+      path: '/portaal/agenda'
+      fullPath: '/portaal/agenda'
+      preLoaderRoute: typeof PortaalAgendaRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -224,7 +304,11 @@ const rootRouteChildren: RootRouteChildren = {
   MissieVisieRoute: MissieVisieRoute,
   OverOnsRoute: OverOnsRoute,
   PrivacyRoute: PrivacyRoute,
+  PortaalAgendaRoute: PortaalAgendaRoute,
+  PortaalLedenRoute: PortaalLedenRoute,
+  PortaalProfielRoute: PortaalProfielRoute,
   AdminIndexRoute: AdminIndexRoute,
+  PortaalIndexRoute: PortaalIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
