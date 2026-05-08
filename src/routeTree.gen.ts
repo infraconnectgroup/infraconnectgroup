@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as OverOnsRouteImport } from './routes/over-ons'
+import { Route as MissieVisieRouteImport } from './routes/missie-visie'
+import { Route as LidmaatschapRouteImport } from './routes/lidmaatschap'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AanmeldenRouteImport } from './routes/aanmelden'
 import { Route as IndexRouteImport } from './routes/index'
 
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OverOnsRoute = OverOnsRouteImport.update({
+  id: '/over-ons',
+  path: '/over-ons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissieVisieRoute = MissieVisieRouteImport.update({
+  id: '/missie-visie',
+  path: '/missie-visie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LidmaatschapRoute = LidmaatschapRouteImport.update({
+  id: '/lidmaatschap',
+  path: '/lidmaatschap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AanmeldenRoute = AanmeldenRouteImport.update({
+  id: '/aanmelden',
+  path: '/aanmelden',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aanmelden': typeof AanmeldenRoute
+  '/contact': typeof ContactRoute
+  '/lidmaatschap': typeof LidmaatschapRoute
+  '/missie-visie': typeof MissieVisieRoute
+  '/over-ons': typeof OverOnsRoute
+  '/privacy': typeof PrivacyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aanmelden': typeof AanmeldenRoute
+  '/contact': typeof ContactRoute
+  '/lidmaatschap': typeof LidmaatschapRoute
+  '/missie-visie': typeof MissieVisieRoute
+  '/over-ons': typeof OverOnsRoute
+  '/privacy': typeof PrivacyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/aanmelden': typeof AanmeldenRoute
+  '/contact': typeof ContactRoute
+  '/lidmaatschap': typeof LidmaatschapRoute
+  '/missie-visie': typeof MissieVisieRoute
+  '/over-ons': typeof OverOnsRoute
+  '/privacy': typeof PrivacyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/aanmelden'
+    | '/contact'
+    | '/lidmaatschap'
+    | '/missie-visie'
+    | '/over-ons'
+    | '/privacy'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/aanmelden'
+    | '/contact'
+    | '/lidmaatschap'
+    | '/missie-visie'
+    | '/over-ons'
+    | '/privacy'
+  id:
+    | '__root__'
+    | '/'
+    | '/aanmelden'
+    | '/contact'
+    | '/lidmaatschap'
+    | '/missie-visie'
+    | '/over-ons'
+    | '/privacy'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AanmeldenRoute: typeof AanmeldenRoute
+  ContactRoute: typeof ContactRoute
+  LidmaatschapRoute: typeof LidmaatschapRoute
+  MissieVisieRoute: typeof MissieVisieRoute
+  OverOnsRoute: typeof OverOnsRoute
+  PrivacyRoute: typeof PrivacyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/over-ons': {
+      id: '/over-ons'
+      path: '/over-ons'
+      fullPath: '/over-ons'
+      preLoaderRoute: typeof OverOnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/missie-visie': {
+      id: '/missie-visie'
+      path: '/missie-visie'
+      fullPath: '/missie-visie'
+      preLoaderRoute: typeof MissieVisieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lidmaatschap': {
+      id: '/lidmaatschap'
+      path: '/lidmaatschap'
+      fullPath: '/lidmaatschap'
+      preLoaderRoute: typeof LidmaatschapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aanmelden': {
+      id: '/aanmelden'
+      path: '/aanmelden'
+      fullPath: '/aanmelden'
+      preLoaderRoute: typeof AanmeldenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,7 +177,23 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AanmeldenRoute: AanmeldenRoute,
+  ContactRoute: ContactRoute,
+  LidmaatschapRoute: LidmaatschapRoute,
+  MissieVisieRoute: MissieVisieRoute,
+  OverOnsRoute: OverOnsRoute,
+  PrivacyRoute: PrivacyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
