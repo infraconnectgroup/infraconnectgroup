@@ -26,13 +26,14 @@ export function useAuth() {
     return () => sub.subscription.unsubscribe();
 
     async function loadRole(userId: string) {
-      // Check roles via the SECURITY DEFINER has_role() function so RLS on
-      // user_roles cannot leak rows or block the lookup.
-      const [{ data: isAdmin }, { data: isLid }] = await Promise.all([
-        supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-        supabase.rpc("has_role", { _user_id: userId, _role: "lid" }),
-      ]);
-      setRole(isAdmin ? "admin" : isLid ? "lid" : null);
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      if (error) console.error("[useAuth] role fetch error:", error);
+      const roles = (data ?? []).map((r: { role: string }) => r.role);
+      console.log("[useAuth] roles for", userId, roles);
+      setRole(roles.includes("admin") ? "admin" : roles.includes("lid") ? "lid" : null);
       setLoading(false);
     }
   }, []);
