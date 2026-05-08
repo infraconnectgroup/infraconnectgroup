@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OverOnsRouteImport } from './routes/over-ons'
 import { Route as MissieVisieRouteImport } from './routes/missie-visie'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as LidmaatschapRouteImport } from './routes/lidmaatschap'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AanmeldenRouteImport } from './routes/aanmelden'
@@ -30,6 +31,11 @@ const OverOnsRoute = OverOnsRouteImport.update({
 const MissieVisieRoute = MissieVisieRouteImport.update({
   id: '/missie-visie',
   path: '/missie-visie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LidmaatschapRoute = LidmaatschapRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/aanmelden': typeof AanmeldenRoute
   '/contact': typeof ContactRoute
   '/lidmaatschap': typeof LidmaatschapRoute
+  '/login': typeof LoginRoute
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/aanmelden': typeof AanmeldenRoute
   '/contact': typeof ContactRoute
   '/lidmaatschap': typeof LidmaatschapRoute
+  '/login': typeof LoginRoute
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/aanmelden': typeof AanmeldenRoute
   '/contact': typeof ContactRoute
   '/lidmaatschap': typeof LidmaatschapRoute
+  '/login': typeof LoginRoute
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/aanmelden'
     | '/contact'
     | '/lidmaatschap'
+    | '/login'
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/aanmelden'
     | '/contact'
     | '/lidmaatschap'
+    | '/login'
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/aanmelden'
     | '/contact'
     | '/lidmaatschap'
+    | '/login'
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AanmeldenRoute: typeof AanmeldenRoute
   ContactRoute: typeof ContactRoute
   LidmaatschapRoute: typeof LidmaatschapRoute
+  LoginRoute: typeof LoginRoute
   MissieVisieRoute: typeof MissieVisieRoute
   OverOnsRoute: typeof OverOnsRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/missie-visie'
       fullPath: '/missie-visie'
       preLoaderRoute: typeof MissieVisieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lidmaatschap': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AanmeldenRoute: AanmeldenRoute,
   ContactRoute: ContactRoute,
   LidmaatschapRoute: LidmaatschapRoute,
+  LoginRoute: LoginRoute,
   MissieVisieRoute: MissieVisieRoute,
   OverOnsRoute: OverOnsRoute,
   PrivacyRoute: PrivacyRoute,
@@ -187,3 +208,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
