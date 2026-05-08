@@ -21,13 +21,13 @@ export const Route = createFileRoute("/aanmelden")({
 });
 
 const formSchema = z.object({
-  bedrijfsnaam: z.string().trim().min(1, "Vereist").max(150),
-  contactpersoon: z.string().trim().min(1, "Vereist").max(100),
+  company_name: z.string().trim().min(1, "Vereist").max(150),
+  full_name: z.string().trim().min(1, "Vereist").max(100),
   email: z.string().trim().email("Ongeldig e-mailadres").max(255),
-  telefoon: z.string().trim().min(6, "Vereist").max(30),
-  kvk_nummer: z.string().trim().min(6, "Vereist").max(20),
-  motivatie: z.string().trim().min(10, "Schrijf minimaal 10 tekens").max(2000),
-  pakket: z.enum(["brons", "zilver", "goud"]),
+  phone: z.string().trim().min(6, "Vereist").max(30),
+  kvk_number: z.string().trim().min(6, "Vereist").max(20),
+  motivation: z.string().trim().min(10, "Schrijf minimaal 10 tekens").max(2000),
+  membership_tier: z.enum(["brons", "zilver", "goud"]),
 });
 
 function ApplyPage() {
@@ -89,18 +89,18 @@ function ApplyPage() {
 
       <section className="py-14">
         <form onSubmit={onSubmit} className="mx-auto grid max-w-2xl gap-5 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
-          <Field label="Bedrijfsnaam" name="bedrijfsnaam" error={fieldErrors.bedrijfsnaam} />
-          <Field label="Contactpersoon" name="contactpersoon" error={fieldErrors.contactpersoon} />
+          <Field label="Bedrijfsnaam" name="company_name" error={fieldErrors.company_name} />
+          <Field label="Contactpersoon" name="full_name" error={fieldErrors.full_name} />
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="E-mail" name="email" type="email" error={fieldErrors.email} />
-            <Field label="Telefoon" name="telefoon" type="tel" error={fieldErrors.telefoon} />
+            <Field label="Telefoon" name="phone" type="tel" error={fieldErrors.phone} />
           </div>
-          <Field label="KvK-nummer" name="kvk_nummer" error={fieldErrors.kvk_nummer} />
+          <Field label="KvK-nummer" name="kvk_number" error={fieldErrors.kvk_number} />
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Pakketkeuze</label>
             <select
-              name="pakket"
+              name="membership_tier"
               defaultValue={pakket ?? ""}
               required
               className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -110,20 +110,20 @@ function ApplyPage() {
               <option value="zilver">Zilver — € 50/maand</option>
               <option value="goud">Goud — € 100/maand</option>
             </select>
-            {fieldErrors.pakket && <p className="mt-1 text-xs text-destructive">{fieldErrors.pakket}</p>}
+            {fieldErrors.membership_tier && <p className="mt-1 text-xs text-destructive">{fieldErrors.membership_tier}</p>}
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Motivatie</label>
             <textarea
-              name="motivatie"
+              name="motivation"
               rows={5}
               required
               maxLength={2000}
               className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               placeholder="Vertel kort waarom je lid wilt worden…"
             />
-            {fieldErrors.motivatie && <p className="mt-1 text-xs text-destructive">{fieldErrors.motivatie}</p>}
+            {fieldErrors.motivation && <p className="mt-1 text-xs text-destructive">{fieldErrors.motivation}</p>}
           </div>
 
           {status === "error" && (
