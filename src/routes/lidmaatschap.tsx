@@ -28,7 +28,7 @@ const tiers = [
     features: ["Alles uit Zilver", "1-op-1 mentorgesprekken", "Premium evenementen", "Logo op website"],
     highlight: false,
   },
-];
+] as const;
 
 function MembershipPage() {
   return (
