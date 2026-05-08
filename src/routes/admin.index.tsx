@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { useEffect, useState } from "react";
-import { supabase, supabaseSignup } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { CheckCircle2, XCircle, Clock, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
@@ -108,34 +108,28 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
     setMsg("");
     try {
       if (status === "accepted") {
-        // Create new auth user (without disturbing admin session) + profile + role
-        const password = generatePassword();
-        const { data: signUp, error: signErr } = await supabaseSignup.auth.signUp({
-          email: app.email, password,
-          options: { data: { full_name: app.contactpersoon, company: app.bedrijfsnaam } },
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) throw new Error("Geen actieve sessie. Log opnieuw in.");
+
+        const SUPABASE_URL = "https://mzgobfulqqabznqflhjq.supabase.co";
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/accept-application`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ application_id: app.id, admin_note: note || null }),
         });
-        if (signErr) throw signErr;
-        const newId = signUp.user?.id;
-        if (newId) {
-          await supabase.from("profiles").upsert({
-            id: newId,
-            full_name: app.contactpersoon,
-            company: app.bedrijfsnaam,
-            email: app.email,
-            phone: app.telefoon,
-          });
-          await supabase.from("user_roles").insert({ user_id: newId, role: "lid" });
-        }
-        // Trigger password reset so user sets their own password
-        await supabase.auth.resetPasswordForEmail(app.email, {
-          redirectTo: `${window.location.origin}/login`,
-        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body?.error || `Functie faalde (${res.status})`);
+      } else {
+        const { error } = await supabase
+          .from("applications")
+          .update({ status, admin_note: note || null })
+          .eq("id", app.id);
+        if (error) throw error;
       }
-      const { error } = await supabase
-        .from("applications")
-        .update({ status, admin_note: note || null })
-        .eq("id", app.id);
-      if (error) throw error;
       onChange();
     } catch (e: unknown) {
       setMsg(e instanceof Error ? e.message : "Er ging iets mis");
@@ -221,8 +215,3 @@ function Detail({ label, value }: { label: string; value: string }) {
   );
 }
 
-function generatePassword() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
-  let p = ""; for (let i = 0; i < 16; i++) p += chars[Math.floor(Math.random() * chars.length)];
-  return p;
-}

@@ -11,10 +11,3 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   },
 });
 
-/**
- * Separate client used ONLY for creating new users from the admin portal,
- * so that signUp() does not replace the admin's current session.
- */
-export const supabaseSignup = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
