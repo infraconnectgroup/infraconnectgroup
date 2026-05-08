@@ -119,7 +119,13 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ application_id: app.id, admin_note: note || null }),
+          body: JSON.stringify({
+            application_id: app.id,
+            email: app.email,
+            full_name: app.contactpersoon,
+            company_name: app.bedrijfsnaam,
+            membership_tier: app.pakket,
+          }),
         });
         const body = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(body?.error || `Functie faalde (${res.status})`);
