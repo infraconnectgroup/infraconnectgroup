@@ -21,13 +21,13 @@ export const Route = createFileRoute("/aanmelden")({
 });
 
 const formSchema = z.object({
-  bedrijfsnaam: z.string().trim().min(1, "Vereist").max(150),
-  contactpersoon: z.string().trim().min(1, "Vereist").max(100),
+  company_name: z.string().trim().min(1, "Vereist").max(150),
+  full_name: z.string().trim().min(1, "Vereist").max(100),
   email: z.string().trim().email("Ongeldig e-mailadres").max(255),
-  telefoon: z.string().trim().min(6, "Vereist").max(30),
-  kvk_nummer: z.string().trim().min(6, "Vereist").max(20),
-  motivatie: z.string().trim().min(10, "Schrijf minimaal 10 tekens").max(2000),
-  pakket: z.enum(["brons", "zilver", "goud"]),
+  phone: z.string().trim().min(6, "Vereist").max(30),
+  kvk_number: z.string().trim().min(6, "Vereist").max(20),
+  motivation: z.string().trim().min(10, "Schrijf minimaal 10 tekens").max(2000),
+  membership_tier: z.enum(["brons", "zilver", "goud"]),
 });
 
 function ApplyPage() {
