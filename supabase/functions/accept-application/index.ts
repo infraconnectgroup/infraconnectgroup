@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     });
     if (linkErr) console.error("generateLink error:", linkErr.message);
 
-    return json({ ok: true, user_id: userId });
+    return json({ ok: true, user_id: userId, status: updatedStatus });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
   }
