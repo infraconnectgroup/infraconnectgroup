@@ -142,9 +142,9 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
           body: JSON.stringify({
             application_id: app.id,
             email: app.email,
-            full_name: app.contactpersoon,
-            company_name: app.bedrijfsnaam,
-            membership_tier: app.pakket,
+            full_name: vw.contact,
+            company_name: vw.company,
+            membership_tier: vw.tier,
           }),
         });
         const body = await res.json().catch(() => ({}));
