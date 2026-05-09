@@ -69,16 +69,22 @@ function ApplicationsList() {
 
   useEffect(() => { void load(); }, []);
 
-  const filtered = items.filter((i) => filter === "all" ? true : (i.status ?? "pending") === filter);
+  function normStatus(s: string | null | undefined): "pending" | "accepted" | "rejected" {
+    const v = (s ?? "").toLowerCase();
+    if (["accepted", "approved", "goedgekeurd", "geaccepteerd"].includes(v)) return "accepted";
+    if (["rejected", "declined", "afgewezen"].includes(v)) return "rejected";
+    return "pending";
+  }
+  const filtered = items.filter((i) => filter === "all" ? true : normStatus(i.status) === filter);
 
   return (
     <div>
       <div className="mb-4 flex flex-wrap gap-2">
         {[
           { v: "all", l: "Alle", c: items.length },
-          { v: "pending", l: "Open", c: items.filter(i => (i.status ?? "pending") === "pending").length },
-          { v: "accepted", l: "Geaccepteerd", c: items.filter(i => i.status === "accepted").length },
-          { v: "rejected", l: "Afgewezen", c: items.filter(i => i.status === "rejected").length },
+          { v: "pending", l: "Open", c: items.filter(i => normStatus(i.status) === "pending").length },
+          { v: "accepted", l: "Geaccepteerd", c: items.filter(i => normStatus(i.status) === "accepted").length },
+          { v: "rejected", l: "Afgewezen", c: items.filter(i => normStatus(i.status) === "rejected").length },
         ].map((b) => (
           <button key={b.v} onClick={() => setFilter(b.v)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${filter === b.v ? "bg-primary text-primary-foreground" : "bg-background border border-border hover:bg-secondary"}`}>
             {b.l} <span className="ml-1 opacity-70">({b.c})</span>
@@ -100,7 +106,10 @@ function ApplicationsList() {
 }
 
 function statusBadge(status: string | null) {
-  const s = status ?? "pending";
+  const v = (status ?? "").toLowerCase();
+  const s = ["accepted","approved","goedgekeurd","geaccepteerd"].includes(v) ? "accepted"
+    : ["rejected","declined","afgewezen"].includes(v) ? "rejected"
+    : "pending";
   const map: Record<string, { c: string; icon: typeof Clock; l: string }> = {
     pending: { c: "bg-amber-100 text-amber-700", icon: Clock, l: "Open" },
     accepted: { c: "bg-emerald-100 text-emerald-700", icon: CheckCircle2, l: "Geaccepteerd" },
