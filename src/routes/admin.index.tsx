@@ -106,7 +106,10 @@ function ApplicationsList() {
 }
 
 function statusBadge(status: string | null) {
-  const s = status ?? "pending";
+  const v = (status ?? "").toLowerCase();
+  const s = ["accepted","approved","goedgekeurd","geaccepteerd"].includes(v) ? "accepted"
+    : ["rejected","declined","afgewezen"].includes(v) ? "rejected"
+    : "pending";
   const map: Record<string, { c: string; icon: typeof Clock; l: string }> = {
     pending: { c: "bg-amber-100 text-amber-700", icon: Clock, l: "Open" },
     accepted: { c: "bg-emerald-100 text-emerald-700", icon: CheckCircle2, l: "Geaccepteerd" },
