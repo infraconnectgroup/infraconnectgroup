@@ -114,8 +114,12 @@ Deno.serve(async (req) => {
       .eq("id", application_id);
     if (updErr) return json({ error: `application: ${updErr.message}` }, 500);
 
-    // 7) Send password setup email
-    await admin.auth.resetPasswordForEmail(email);
+    // 7) Send password setup email (recovery link)
+    const { error: linkErr } = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+    });
+    if (linkErr) console.error("generateLink error:", linkErr.message);
 
     return json({ ok: true, user_id: userId });
   } catch (e) {
