@@ -82,9 +82,9 @@ function ApplicationsList() {
       <div className="mb-4 flex flex-wrap gap-2">
         {[
           { v: "all", l: "Alle", c: items.length },
-          { v: "pending", l: "Open", c: items.filter(i => (i.status ?? "pending") === "pending").length },
-          { v: "accepted", l: "Geaccepteerd", c: items.filter(i => i.status === "accepted").length },
-          { v: "rejected", l: "Afgewezen", c: items.filter(i => i.status === "rejected").length },
+          { v: "pending", l: "Open", c: items.filter(i => normStatus(i.status) === "pending").length },
+          { v: "accepted", l: "Geaccepteerd", c: items.filter(i => normStatus(i.status) === "accepted").length },
+          { v: "rejected", l: "Afgewezen", c: items.filter(i => normStatus(i.status) === "rejected").length },
         ].map((b) => (
           <button key={b.v} onClick={() => setFilter(b.v)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${filter === b.v ? "bg-primary text-primary-foreground" : "bg-background border border-border hover:bg-secondary"}`}>
             {b.l} <span className="ml-1 opacity-70">({b.c})</span>
