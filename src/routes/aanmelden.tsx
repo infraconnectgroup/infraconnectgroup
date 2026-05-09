@@ -50,10 +50,16 @@ function ApplyPage() {
       setStatus("idle");
       return;
     }
-    const { error } = await supabase.from("applications").insert({
-      ...parsed.data,
-      status: "pending",
-    });
+    const { company_name, full_name, email, phone, kvk_number, membership_tier, motivation } = parsed.data;
+    const { error } = await supabase.from("applications").insert([{
+      company_name,
+      full_name,
+      email,
+      phone,
+      kvk_number,
+      membership_tier,
+      motivation,
+    }]);
     if (error) {
       setErrMsg(error.message);
       setStatus("error");
