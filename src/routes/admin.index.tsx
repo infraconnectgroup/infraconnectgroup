@@ -10,17 +10,35 @@ export const Route = createFileRoute("/admin/")({
 
 type Application = {
   id: string;
-  bedrijfsnaam: string;
-  contactpersoon: string;
+  company_name: string | null;
+  full_name: string | null;
   email: string;
-  telefoon: string;
-  kvk_nummer: string;
-  motivatie: string;
-  pakket: string;
+  phone: string | null;
+  kvk_number: string | null;
+  motivation: string | null;
+  membership_tier: string | null;
+  // legacy fallbacks
+  bedrijfsnaam?: string | null;
+  contactpersoon?: string | null;
+  telefoon?: string | null;
+  kvk_nummer?: string | null;
+  motivatie?: string | null;
+  pakket?: string | null;
   status: string | null;
   admin_note?: string | null;
   created_at: string;
 };
+
+function v(app: Application) {
+  return {
+    company: app.company_name ?? app.bedrijfsnaam ?? "",
+    contact: app.full_name ?? app.contactpersoon ?? "",
+    phone: app.phone ?? app.telefoon ?? "",
+    kvk: app.kvk_number ?? app.kvk_nummer ?? "",
+    motivation: app.motivation ?? app.motivatie ?? "",
+    tier: app.membership_tier ?? app.pakket ?? "",
+  };
+}
 
 function AdminPage() {
   return (
