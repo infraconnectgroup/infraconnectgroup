@@ -113,11 +113,13 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
         if (!token) throw new Error("Geen actieve sessie. Log opnieuw in.");
 
         const SUPABASE_URL = "https://mzgobfulqqabznqflhjq.supabase.co";
+        const SUPABASE_ANON = "sb_publishable_uL2hLYBKeK3JIAs0wbXcXQ_dzcF78Bh";
         const res = await fetch(`${SUPABASE_URL}/functions/v1/accept-application`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
+            apikey: SUPABASE_ANON,
           },
           body: JSON.stringify({
             application_id: app.id,
