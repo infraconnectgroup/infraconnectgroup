@@ -121,6 +121,8 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
   const [busy, setBusy] = useState<"" | "accept" | "reject" | "save">("");
   const [msg, setMsg] = useState("");
 
+  const vw = v(app);
+
   async function updateStatus(status: "accepted" | "rejected") {
     setBusy(status === "accepted" ? "accept" : "reject");
     setMsg("");
