@@ -35,9 +35,8 @@ function AboutPage() {
           <p>
             Wij geloven dat ondernemen meer is dan winst maken — het is een vorm van
             dienstbaarheid aan de samenleving en een mogelijkheid om islamitische
-            waarden in praktijk te brengen. Vanuit Deventer bouwen wij aan een
-            netwerk van professionals die elkaar versterken, kennis delen en samen
-            groeien.
+            waarden in praktijk te brengen. Wij bouwen aan een netwerk van
+            professionals die elkaar versterken, kennis delen en samen groeien.
           </p>
           <p>
             Onze leden zijn actief in uiteenlopende sectoren: van retail en horeca
