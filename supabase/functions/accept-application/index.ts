@@ -107,12 +107,21 @@ Deno.serve(async (req) => {
       .upsert({ user_id: userId, role: "lid" }, { onConflict: "user_id,role" });
     if (roleInsertErr) return json({ error: `role: ${roleInsertErr.message}` }, 500);
 
-    // 6) Update application status
-    const { error: updErr } = await admin
-      .from("applications")
-      .update({ status: "accepted", admin_note: admin_note ?? app.admin_note ?? null })
-      .eq("id", application_id);
-    if (updErr) return json({ error: `application: ${updErr.message}` }, 500);
+    // 6) Update application status — tolerate different check-constraint values.
+    const candidates = ["accepted", "approved", "goedgekeurd", "geaccepteerd"];
+    let updatedStatus: string | null = null;
+    let lastErr: string | null = null;
+    for (const s of candidates) {
+      const { error: updErr } = await admin
+        .from("applications")
+        .update({ status: s, admin_note: admin_note ?? app.admin_note ?? null })
+        .eq("id", application_id);
+      if (!updErr) { updatedStatus = s; break; }
+      lastErr = updErr.message;
+      // Only retry on check-constraint violations; otherwise fail fast.
+      if (!/check constraint|violates/i.test(updErr.message)) break;
+    }
+    if (!updatedStatus) return json({ error: `application: ${lastErr}` }, 500);
 
     // 7) Send password setup email (recovery link)
     const { error: linkErr } = await admin.auth.admin.generateLink({
