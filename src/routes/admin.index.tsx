@@ -69,7 +69,13 @@ function ApplicationsList() {
 
   useEffect(() => { void load(); }, []);
 
-  const filtered = items.filter((i) => filter === "all" ? true : (i.status ?? "pending") === filter);
+  function normStatus(s: string | null | undefined): "pending" | "accepted" | "rejected" {
+    const v = (s ?? "").toLowerCase();
+    if (["accepted", "approved", "goedgekeurd", "geaccepteerd"].includes(v)) return "accepted";
+    if (["rejected", "declined", "afgewezen"].includes(v)) return "rejected";
+    return "pending";
+  }
+  const filtered = items.filter((i) => filter === "all" ? true : normStatus(i.status) === filter);
 
   return (
     <div>
