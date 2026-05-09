@@ -178,11 +178,11 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
       <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4 p-4 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-foreground">{app.bedrijfsnaam}</span>
+            <span className="font-semibold text-foreground">{vw.company}</span>
             {statusBadge(app.status)}
-            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium uppercase text-accent">{app.pakket}</span>
+            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium uppercase text-accent">{vw.tier}</span>
           </div>
-          <div className="mt-1 truncate text-sm text-muted-foreground">{app.contactpersoon} • {app.email}</div>
+          <div className="mt-1 truncate text-sm text-muted-foreground">{vw.contact} • {app.email}</div>
         </div>
         <span className="shrink-0 text-xs text-muted-foreground">{new Date(app.created_at).toLocaleDateString("nl-NL")}</span>
         {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -191,16 +191,16 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
       {open && (
         <div className="border-t border-border p-4">
           <dl className="grid gap-3 sm:grid-cols-2">
-            <Detail label="Contactpersoon" value={app.contactpersoon} />
+            <Detail label="Contactpersoon" value={vw.contact} />
             <Detail label="E-mail" value={app.email} />
-            <Detail label="Telefoon" value={app.telefoon} />
-            <Detail label="KvK-nummer" value={app.kvk_nummer} />
-            <Detail label="Pakket" value={app.pakket} />
+            <Detail label="Telefoon" value={vw.phone} />
+            <Detail label="KvK-nummer" value={vw.kvk} />
+            <Detail label="Pakket" value={vw.tier} />
             <Detail label="Aangemeld op" value={new Date(app.created_at).toLocaleString("nl-NL")} />
           </dl>
           <div className="mt-4">
             <div className="text-xs font-semibold uppercase text-muted-foreground">Motivatie</div>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{app.motivatie}</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{vw.motivation}</p>
           </div>
           <div className="mt-4">
             <label className="mb-1.5 block text-sm font-medium">Opmerking (intern)</label>
