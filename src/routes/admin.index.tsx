@@ -10,17 +10,35 @@ export const Route = createFileRoute("/admin/")({
 
 type Application = {
   id: string;
-  bedrijfsnaam: string;
-  contactpersoon: string;
+  company_name: string | null;
+  full_name: string | null;
   email: string;
-  telefoon: string;
-  kvk_nummer: string;
-  motivatie: string;
-  pakket: string;
+  phone: string | null;
+  kvk_number: string | null;
+  motivation: string | null;
+  membership_tier: string | null;
+  // legacy fallbacks
+  bedrijfsnaam?: string | null;
+  contactpersoon?: string | null;
+  telefoon?: string | null;
+  kvk_nummer?: string | null;
+  motivatie?: string | null;
+  pakket?: string | null;
   status: string | null;
   admin_note?: string | null;
   created_at: string;
 };
+
+function v(app: Application) {
+  return {
+    company: app.company_name ?? app.bedrijfsnaam ?? "",
+    contact: app.full_name ?? app.contactpersoon ?? "",
+    phone: app.phone ?? app.telefoon ?? "",
+    kvk: app.kvk_number ?? app.kvk_nummer ?? "",
+    motivation: app.motivation ?? app.motivatie ?? "",
+    tier: app.membership_tier ?? app.pakket ?? "",
+  };
+}
 
 function AdminPage() {
   return (
@@ -103,6 +121,8 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
   const [busy, setBusy] = useState<"" | "accept" | "reject" | "save">("");
   const [msg, setMsg] = useState("");
 
+  const vw = v(app);
+
   async function updateStatus(status: "accepted" | "rejected") {
     setBusy(status === "accepted" ? "accept" : "reject");
     setMsg("");
@@ -124,9 +144,9 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
           body: JSON.stringify({
             application_id: app.id,
             email: app.email,
-            full_name: app.contactpersoon,
-            company_name: app.bedrijfsnaam,
-            membership_tier: app.pakket,
+            full_name: vw.contact,
+            company_name: vw.company,
+            membership_tier: vw.tier,
           }),
         });
         const body = await res.json().catch(() => ({}));
@@ -158,11 +178,11 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
       <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4 p-4 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-foreground">{app.bedrijfsnaam}</span>
+            <span className="font-semibold text-foreground">{vw.company}</span>
             {statusBadge(app.status)}
-            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium uppercase text-accent">{app.pakket}</span>
+            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium uppercase text-accent">{vw.tier}</span>
           </div>
-          <div className="mt-1 truncate text-sm text-muted-foreground">{app.contactpersoon} • {app.email}</div>
+          <div className="mt-1 truncate text-sm text-muted-foreground">{vw.contact} • {app.email}</div>
         </div>
         <span className="shrink-0 text-xs text-muted-foreground">{new Date(app.created_at).toLocaleDateString("nl-NL")}</span>
         {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -171,16 +191,16 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
       {open && (
         <div className="border-t border-border p-4">
           <dl className="grid gap-3 sm:grid-cols-2">
-            <Detail label="Contactpersoon" value={app.contactpersoon} />
+            <Detail label="Contactpersoon" value={vw.contact} />
             <Detail label="E-mail" value={app.email} />
-            <Detail label="Telefoon" value={app.telefoon} />
-            <Detail label="KvK-nummer" value={app.kvk_nummer} />
-            <Detail label="Pakket" value={app.pakket} />
+            <Detail label="Telefoon" value={vw.phone} />
+            <Detail label="KvK-nummer" value={vw.kvk} />
+            <Detail label="Pakket" value={vw.tier} />
             <Detail label="Aangemeld op" value={new Date(app.created_at).toLocaleString("nl-NL")} />
           </dl>
           <div className="mt-4">
             <div className="text-xs font-semibold uppercase text-muted-foreground">Motivatie</div>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{app.motivatie}</p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{vw.motivation}</p>
           </div>
           <div className="mt-4">
             <label className="mb-1.5 block text-sm font-medium">Opmerking (intern)</label>
