@@ -16,7 +16,7 @@ export function Footer() {
               </div>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Een netwerk voor ondernemers met islamitische waarden in Deventer en omstreken.
+              Een netwerk voor ondernemers met islamitische waarden.
             </p>
           </div>
 
