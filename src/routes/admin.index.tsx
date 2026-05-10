@@ -9,6 +9,7 @@ export const Route = createFileRoute("/admin/")({
 });
 
 type Application = {
+  /** Primary key van `public.applications` (UUID) */
   id: string;
   company_name: string | null;
   full_name: string | null;
@@ -29,6 +30,22 @@ type Application = {
   created_at: string;
 };
 
+/** Primary key-UUID uit `applications` (kolom `id`, of `application_id` als die als pk gebruikt wordt). */
+function applicationRowIdOrNull(app: Application): string | null {
+  const row = app as Application & { application_id?: string };
+  const pk = row.id ?? row.application_id;
+  if (pk == null || String(pk).trim() === "") return null;
+  return String(pk).trim();
+}
+
+function requireApplicationRowId(app: Application): string {
+  const id = applicationRowIdOrNull(app);
+  if (!id) {
+    throw new Error("Deze aanmelding heeft geen geldige database-id (applications.id).");
+  }
+  return id;
+}
+
 function v(app: Application) {
   return {
     company: app.company_name ?? app.bedrijfsnaam ?? "",
@@ -44,7 +61,9 @@ function AdminPage() {
   return (
     <AdminShell>
       <h1 className="font-display text-3xl font-bold text-foreground">Aanmeldingen</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Beheer en beoordeel binnenkomende lidmaatschapsaanvragen.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Beheer en beoordeel binnenkomende lidmaatschapsaanvragen.
+      </p>
       <div className="mt-6">
         <ApplicationsList />
       </div>
@@ -67,7 +86,9 @@ function ApplicationsList() {
     setLoading(false);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   function normStatus(s: string | null | undefined): "pending" | "accepted" | "rejected" {
     const v = (s ?? "").toLowerCase();
@@ -75,30 +96,56 @@ function ApplicationsList() {
     if (["rejected", "declined", "afgewezen"].includes(v)) return "rejected";
     return "pending";
   }
-  const filtered = items.filter((i) => filter === "all" ? true : normStatus(i.status) === filter);
+  const filtered = items.filter((i) => (filter === "all" ? true : normStatus(i.status) === filter));
 
   return (
     <div>
       <div className="mb-4 flex flex-wrap gap-2">
         {[
           { v: "all", l: "Alle", c: items.length },
-          { v: "pending", l: "Open", c: items.filter(i => normStatus(i.status) === "pending").length },
-          { v: "accepted", l: "Geaccepteerd", c: items.filter(i => normStatus(i.status) === "accepted").length },
-          { v: "rejected", l: "Afgewezen", c: items.filter(i => normStatus(i.status) === "rejected").length },
+          {
+            v: "pending",
+            l: "Open",
+            c: items.filter((i) => normStatus(i.status) === "pending").length,
+          },
+          {
+            v: "accepted",
+            l: "Geaccepteerd",
+            c: items.filter((i) => normStatus(i.status) === "accepted").length,
+          },
+          {
+            v: "rejected",
+            l: "Afgewezen",
+            c: items.filter((i) => normStatus(i.status) === "rejected").length,
+          },
         ].map((b) => (
-          <button key={b.v} onClick={() => setFilter(b.v)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${filter === b.v ? "bg-primary text-primary-foreground" : "bg-background border border-border hover:bg-secondary"}`}>
+          <button
+            key={b.v}
+            onClick={() => setFilter(b.v)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${filter === b.v ? "bg-primary text-primary-foreground" : "bg-background border border-border hover:bg-secondary"}`}
+          >
             {b.l} <span className="ml-1 opacity-70">({b.c})</span>
           </button>
         ))}
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12 text-muted-foreground"><Loader2 className="animate-spin" /></div>
+        <div className="flex justify-center py-12 text-muted-foreground">
+          <Loader2 className="animate-spin" />
+        </div>
       ) : filtered.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-background p-10 text-center text-sm text-muted-foreground">Geen aanmeldingen.</p>
+        <p className="rounded-xl border border-dashed border-border bg-background p-10 text-center text-sm text-muted-foreground">
+          Geen aanmeldingen.
+        </p>
       ) : (
         <div className="space-y-3">
-          {filtered.map((a) => <ApplicationCard key={a.id} app={a} onChange={load} />)}
+          {filtered.map((a) => (
+            <ApplicationCard
+              key={applicationRowIdOrNull(a) ?? `aanmelding-${a.email}-${a.created_at}`}
+              app={a}
+              onChange={load}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -107,9 +154,11 @@ function ApplicationsList() {
 
 function statusBadge(status: string | null) {
   const v = (status ?? "").toLowerCase();
-  const s = ["accepted","approved","goedgekeurd","geaccepteerd"].includes(v) ? "accepted"
-    : ["rejected","declined","afgewezen"].includes(v) ? "rejected"
-    : "pending";
+  const s = ["accepted", "approved", "goedgekeurd", "geaccepteerd"].includes(v)
+    ? "accepted"
+    : ["rejected", "declined", "afgewezen"].includes(v)
+      ? "rejected"
+      : "pending";
   const map: Record<string, { c: string; icon: typeof Clock; l: string }> = {
     pending: { c: "bg-amber-100 text-amber-700", icon: Clock, l: "Open" },
     accepted: { c: "bg-emerald-100 text-emerald-700", icon: CheckCircle2, l: "Geaccepteerd" },
@@ -118,7 +167,9 @@ function statusBadge(status: string | null) {
   const m = map[s] ?? map.pending;
   const Icon = m.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${m.c}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${m.c}`}
+    >
       <Icon size={12} /> {m.l}
     </span>
   );
@@ -143,19 +194,17 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
 
         const SUPABASE_URL = "https://mzgobfulqqabznqflhjq.supabase.co";
         const SUPABASE_ANON = "sb_publishable_uL2hLYBKeK3JIAs0wbXcXQ_dzcF78Bh";
+        const applicationId = requireApplicationRowId(app);
         const res = await fetch(`${SUPABASE_URL}/functions/v1/accept-application`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
             apikey: SUPABASE_ANON,
           },
           body: JSON.stringify({
-            application_id: app.id,
-            email: app.email,
-            full_name: vw.contact,
-            company_name: vw.company,
-            membership_tier: vw.tier,
+            application_id: applicationId,
+            admin_note: note.trim() || null,
+            access_token: token,
           }),
         });
         const body = await res.json().catch(() => ({}));
@@ -164,7 +213,7 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
         const { error } = await supabase
           .from("applications")
           .update({ status, admin_note: note || null })
-          .eq("id", app.id);
+          .eq("id", requireApplicationRowId(app));
         if (error) throw error;
       }
       onChange();
@@ -176,24 +225,38 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
   }
 
   async function saveNote() {
-    setBusy("save"); setMsg("");
-    const { error } = await supabase.from("applications").update({ admin_note: note }).eq("id", app.id);
+    setBusy("save");
+    setMsg("");
+    const { error } = await supabase
+      .from("applications")
+      .update({ admin_note: note })
+      .eq("id", requireApplicationRowId(app));
     setBusy("");
-    if (error) setMsg(error.message); else setMsg("Opmerking opgeslagen.");
+    if (error) setMsg(error.message);
+    else setMsg("Opmerking opgeslagen.");
   }
 
   return (
     <div className="rounded-xl border border-border bg-background shadow-[var(--shadow-card)]">
-      <button onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4 p-4 text-left">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between gap-4 p-4 text-left"
+      >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-foreground">{vw.company}</span>
             {statusBadge(app.status)}
-            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium uppercase text-accent">{vw.tier}</span>
+            <span className="rounded bg-accent/10 px-1.5 py-0.5 text-xs font-medium uppercase text-accent">
+              {vw.tier}
+            </span>
           </div>
-          <div className="mt-1 truncate text-sm text-muted-foreground">{vw.contact} • {app.email}</div>
+          <div className="mt-1 truncate text-sm text-muted-foreground">
+            {vw.contact} • {app.email}
+          </div>
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">{new Date(app.created_at).toLocaleDateString("nl-NL")}</span>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {new Date(app.created_at).toLocaleDateString("nl-NL")}
+        </span>
         {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
       </button>
 
@@ -213,8 +276,17 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
           </div>
           <div className="mt-4">
             <label className="mb-1.5 block text-sm font-medium">Opmerking (intern)</label>
-            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-            <button onClick={saveNote} disabled={busy === "save"} className="mt-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={3}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <button
+              onClick={saveNote}
+              disabled={busy === "save"}
+              className="mt-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+            >
               {busy === "save" ? "Opslaan…" : "Opmerking opslaan"}
             </button>
           </div>
@@ -225,7 +297,11 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
               onClick={() => updateStatus("accepted")}
               className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              {busy === "accept" ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+              {busy === "accept" ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <CheckCircle2 size={16} />
+              )}
               Accepteren
             </button>
             <button
@@ -233,7 +309,11 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
               onClick={() => updateStatus("rejected")}
               className="inline-flex items-center gap-2 rounded-md border border-rose-300 bg-background px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
             >
-              {busy === "reject" ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+              {busy === "reject" ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <XCircle size={16} />
+              )}
               Afwijzen
             </button>
           </div>
@@ -251,4 +331,3 @@ function Detail({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-

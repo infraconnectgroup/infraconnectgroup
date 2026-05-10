@@ -13,9 +13,9 @@ export const Route = createFileRoute("/over-ons")({
 
 function AboutPage() {
   const board = [
-    { name: "Voorzitter", role: "Bestuursvoorzitter", initials: "VZ" },
-    { name: "Secretaris", role: "Bestuurslid", initials: "SC" },
-    { name: "Penningmeester", role: "Bestuurslid", initials: "PM" },
+    { role: "Voorzitter", name: "Naoufal Bouazza", initials: "NB" },
+    { role: "Secretaris", name: "Ahmad Balaksi", initials: "AB" },
+    { role: "Adviseur", name: "Mehmet Kılıç", initials: "MK" },
   ];
 
   return (
@@ -57,7 +57,7 @@ function AboutPage() {
           <h2 className="text-center font-display text-3xl font-bold text-foreground">Het bestuur</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {board.map((m) => (
-              <div key={m.role} className="rounded-2xl border border-border bg-card p-6 text-center shadow-[var(--shadow-card)]">
+              <div key={m.name} className="rounded-2xl border border-border bg-card p-6 text-center shadow-[var(--shadow-card)]">
                 <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-[var(--primary-light)] font-display text-2xl font-bold text-primary-foreground">
                   {m.initials}
                 </div>

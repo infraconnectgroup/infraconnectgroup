@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Businessclub Al Islah — Netwerk voor moslimondernemers" },
-      { name: "description", content: "Businessclub Al Islah verbindt ondernemers met islamitische waarden in Deventer. Word lid van ons netwerk." },
+      { name: "description", content: "Businessclub Al Islah verbindt ondernemers met islamitische waarden. Word lid van ons netwerk." },
       { property: "og:title", content: "Businessclub Al Islah" },
       { property: "og:description", content: "Netwerken, kennis delen en groeien — samen vanuit islamitische waarden." },
     ],
@@ -29,7 +29,7 @@ function HomePage() {
               <span className="text-primary">islamitische waarden</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground sm:text-xl">
-              Een professioneel netwerk voor ondernemers in Deventer en omstreken.
+              Een professioneel netwerk voor ondernemers.
               Verbind, leer en groei samen met gelijkgestemde professionals.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
