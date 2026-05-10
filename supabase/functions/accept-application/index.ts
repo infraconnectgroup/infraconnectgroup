@@ -147,25 +147,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 6) Assign 'lid' role — alleen als de user nog GEEN rol heeft.
-    //    (pkey staat op user_id alleen → één rol per user; admin nooit downgraden.)
-    const { data: existingRoles } = await admin
+    // 6) Assign 'lid' role (idempotent)
+    const { error: roleInsertErr } = await admin
       .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    if (!existingRoles || existingRoles.length === 0) {
-      const { error: roleInsertErr } = await admin
-        .from("user_roles")
-        .insert({ user_id: userId, role: "lid" });
-      if (roleInsertErr && !/duplicate key/i.test(roleInsertErr.message)) {
-        return json({ error: `role: ${roleInsertErr.message}` }, 500);
-      }
-    } else {
-      console.log(
-        "[accept-application] user heeft al rol(len), niet wijzigen:",
-        (existingRoles as { role: string }[]).map((r) => r.role).join(","),
-      );
-    }
+      .upsert({ user_id: userId, role: "lid" }, { onConflict: "user_id,role" });
+    if (roleInsertErr) return json({ error: `role: ${roleInsertErr.message}` }, 500);
 
     // 7) Update application status — zelfde userClient + RLS als admin-pagina
     const candidates = ["accepted", "approved", "goedgekeurd", "geaccepteerd"];
@@ -183,49 +169,14 @@ Deno.serve(async (req) => {
     }
     if (!updatedStatus) return json({ error: `application: ${lastErr}` }, 500);
 
-    // 8) TEMP: Resend test email to verify Resend integration
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    console.log("[accept-application] RESEND_API_KEY aanwezig:", !!RESEND_API_KEY);
-    let resendStatus: number | null = null;
-    let resendBody: unknown = null;
-    let resendError: string | null = null;
-    try {
-      if (!RESEND_API_KEY) {
-        resendError = "RESEND_API_KEY ontbreekt in edge function secrets";
-        console.error("[accept-application]", resendError);
-      } else {
-        const resendRes = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "Businessclub Al Islah <info@businessclub-alislah.nl>",
-            to: ["mehmetkilic@live.nl"],
-            subject: "Testmail Businessclub",
-            html: `<p>Dit is een testmail vanuit de accept-application edge function.</p>
-                   <p>Verstuurd voor: ${email}</p>
-                   <p>Tijdstip: ${new Date().toISOString()}</p>`,
-          }),
-        });
-        resendStatus = resendRes.status;
-        const txt = await resendRes.text();
-        try { resendBody = JSON.parse(txt); } catch { resendBody = txt; }
-        console.log("[accept-application] Resend status:", resendStatus);
-        console.log("[accept-application] Resend body:", JSON.stringify(resendBody));
-      }
-    } catch (e) {
-      resendError = e instanceof Error ? e.message : String(e);
-      console.error("[accept-application] Resend runtime error:", resendError);
-    }
-
-    return json({
-      ok: true,
-      user_id: userId,
-      status: updatedStatus,
-      resend: { status: resendStatus, body: resendBody, error: resendError },
+    // 8) Send password setup email (recovery link)
+    const { error: linkErr } = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email,
     });
+    if (linkErr) console.error("generateLink error:", linkErr.message);
+
+    return json({ ok: true, user_id: userId, status: updatedStatus });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
   }
