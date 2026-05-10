@@ -147,11 +147,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 6) Assign 'lid' role (idempotent)
-    const { error: roleInsertErr } = await admin
+    // 6) Assign 'lid' role (idempotent — pkey-shape onbekend, dus eerst checken)
+    const { data: existingRoles } = await admin
       .from("user_roles")
-      .upsert({ user_id: userId, role: "lid" }, { onConflict: "user_id,role" });
-    if (roleInsertErr) return json({ error: `role: ${roleInsertErr.message}` }, 500);
+      .select("role")
+      .eq("user_id", userId);
+    const hasLid = (existingRoles ?? []).some((r: { role: string }) => r.role === "lid");
+    if (!hasLid) {
+      const { error: roleInsertErr } = await admin
+        .from("user_roles")
+        .insert({ user_id: userId, role: "lid" });
+      if (roleInsertErr && !/duplicate key/i.test(roleInsertErr.message)) {
+        return json({ error: `role: ${roleInsertErr.message}` }, 500);
+      }
+    }
 
     // 7) Update application status — zelfde userClient + RLS als admin-pagina
     const candidates = ["accepted", "approved", "goedgekeurd", "geaccepteerd"];
