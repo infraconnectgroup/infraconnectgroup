@@ -169,14 +169,49 @@ Deno.serve(async (req) => {
     }
     if (!updatedStatus) return json({ error: `application: ${lastErr}` }, 500);
 
-    // 8) Send password setup email (recovery link)
-    const { error: linkErr } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-    });
-    if (linkErr) console.error("generateLink error:", linkErr.message);
+    // 8) TEMP: Resend test email to verify Resend integration
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    console.log("[accept-application] RESEND_API_KEY aanwezig:", !!RESEND_API_KEY);
+    let resendStatus: number | null = null;
+    let resendBody: unknown = null;
+    let resendError: string | null = null;
+    try {
+      if (!RESEND_API_KEY) {
+        resendError = "RESEND_API_KEY ontbreekt in edge function secrets";
+        console.error("[accept-application]", resendError);
+      } else {
+        const resendRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from: "Businessclub Al Islah <info@businessclub-alislah.nl>",
+            to: ["mehmetkilic@live.nl"],
+            subject: "Testmail Businessclub",
+            html: `<p>Dit is een testmail vanuit de accept-application edge function.</p>
+                   <p>Verstuurd voor: ${email}</p>
+                   <p>Tijdstip: ${new Date().toISOString()}</p>`,
+          }),
+        });
+        resendStatus = resendRes.status;
+        const txt = await resendRes.text();
+        try { resendBody = JSON.parse(txt); } catch { resendBody = txt; }
+        console.log("[accept-application] Resend status:", resendStatus);
+        console.log("[accept-application] Resend body:", JSON.stringify(resendBody));
+      }
+    } catch (e) {
+      resendError = e instanceof Error ? e.message : String(e);
+      console.error("[accept-application] Resend runtime error:", resendError);
+    }
 
-    return json({ ok: true, user_id: userId, status: updatedStatus });
+    return json({
+      ok: true,
+      user_id: userId,
+      status: updatedStatus,
+      resend: { status: resendStatus, body: resendBody, error: resendError },
+    });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
   }
