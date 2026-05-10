@@ -169,14 +169,67 @@ Deno.serve(async (req) => {
     }
     if (!updatedStatus) return json({ error: `application: ${lastErr}` }, 500);
 
-    // 8) Send password setup email (recovery link)
-    const { error: linkErr } = await admin.auth.admin.generateLink({
+    // 8) Generate password setup link + send branded onboarding email
+    const SITE_URL = Deno.env.get("SITE_URL") ?? "https://businessclub-alislah.nl";
+    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
       type: "recovery",
       email,
+      options: { redirectTo: `${SITE_URL}/portaal` },
     });
     if (linkErr) console.error("generateLink error:", linkErr.message);
 
-    return json({ ok: true, user_id: userId, status: updatedStatus });
+    const actionLink =
+      linkData?.properties?.action_link ??
+      `${SITE_URL}/login`;
+
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    let emailSent = false;
+    let emailError: string | null = null;
+
+    if (RESEND_API_KEY) {
+      const html = renderOnboardingEmail({
+        fullName,
+        companyName,
+        actionLink,
+        siteUrl: SITE_URL,
+      });
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Businessclub Al Islah <info@businessclub-alislah.nl>",
+            to: [email],
+            subject: "Welkom bij Businessclub Al Islah — stel je wachtwoord in",
+            html,
+          }),
+        });
+        if (!res.ok) {
+          emailError = `resend ${res.status}: ${await res.text()}`;
+          console.error(emailError);
+        } else {
+          emailSent = true;
+        }
+      } catch (e) {
+        emailError = e instanceof Error ? e.message : "resend failed";
+        console.error(emailError);
+      }
+    } else {
+      emailError = "RESEND_API_KEY not configured";
+      console.warn("[accept-application]", emailError);
+    }
+
+    return json({
+      ok: true,
+      user_id: userId,
+      status: updatedStatus,
+      email_sent: emailSent,
+      email_error: emailError,
+      action_link: emailSent ? undefined : actionLink,
+    });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
   }
