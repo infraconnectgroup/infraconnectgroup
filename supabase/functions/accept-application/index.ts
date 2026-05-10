@@ -234,3 +234,164 @@ Deno.serve(async (req) => {
     return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
   }
 });
+
+// ---------- Branded onboarding email template ----------
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+interface OnboardingEmailData {
+  fullName: string;
+  companyName: string;
+  actionLink: string;
+  siteUrl: string;
+}
+
+function renderOnboardingEmail(d: OnboardingEmailData): string {
+  const name = d.fullName?.trim() || "ondernemer";
+  const company = d.companyName?.trim() || "";
+  const logoUrl = `${d.siteUrl.replace(/\/$/, "")}/logo-alislah.png`;
+  const safeName = escapeHtml(name);
+  const safeCompany = escapeHtml(company);
+  const safeLink = escapeHtml(d.actionLink);
+  const safeSite = escapeHtml(d.siteUrl);
+
+  // Brand colors (mirror src/styles.css)
+  const primary = "#248eb7";
+  const accent = "#bd8d2b";
+
+  return `<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>Welkom bij Businessclub Al Islah</title>
+<!--[if mso]>
+<style type="text/css">
+  body, table, td { font-family: Arial, sans-serif !important; }
+</style>
+<![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6f8;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Welkom bij Businessclub Al Islah — stel je wachtwoord in en activeer je lidmaatschap.
+  </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+          <!-- Logo header -->
+          <tr>
+            <td align="center" style="padding:8px 0 24px 0;">
+              <img src="${escapeHtml(logoUrl)}" width="64" height="64" alt="Businessclub Al Islah"
+                style="display:block;border:0;outline:none;text-decoration:none;width:64px;height:64px;border-radius:12px;" />
+              <div style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:${primary};margin-top:12px;font-weight:700;letter-spacing:0.3px;">
+                Businessclub Al Islah
+              </div>
+            </td>
+          </tr>
+          <!-- Card -->
+          <tr>
+            <td style="background-color:#ffffff;border-radius:16px;box-shadow:0 4px 24px rgba(15,23,42,0.06);padding:40px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding-bottom:8px;">
+                    <span style="display:inline-block;background-color:#fdf3df;color:${accent};font-family:Arial,sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:999px;">
+                      Aanmelding goedgekeurd
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding:16px 0 8px 0;">
+                    <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.25;color:#0f172a;font-weight:700;">
+                      Welkom, ${safeName}
+                    </h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding:8px 0 24px 0;">
+                    <p style="margin:0;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:#475569;">
+                      We zijn verheugd ${safeCompany ? `<strong style="color:#0f172a;">${safeCompany}</strong> en jou ` : "je "}te mogen verwelkomen bij Businessclub Al Islah — het netwerk voor ondernemers met islamitische waarden. Stel hieronder je wachtwoord in om direct toegang te krijgen tot het ledenportaal.
+                    </p>
+                  </td>
+                </tr>
+                <!-- CTA -->
+                <tr>
+                  <td align="center" style="padding:8px 0 24px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" bgcolor="${primary}" style="border-radius:10px;">
+                          <a href="${safeLink}"
+                            style="display:inline-block;padding:16px 32px;font-family:Arial,sans-serif;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;background-color:${primary};">
+                            Wachtwoord instellen
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding:0 0 8px 0;">
+                    <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#64748b;line-height:1.6;">
+                      Werkt de knop niet? Kopieer en plak deze link in je browser:<br/>
+                      <a href="${safeLink}" style="color:${primary};word-break:break-all;">${safeLink}</a>
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:24px 0 8px 0;">
+                    <hr style="border:none;border-top:1px solid #e2e8f0;margin:0;" />
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 0 0 0;">
+                    <p style="margin:0 0 8px 0;font-family:Arial,sans-serif;font-size:14px;color:#0f172a;font-weight:600;">
+                      Wat kun je verwachten?
+                    </p>
+                    <ul style="margin:0;padding-left:20px;font-family:Arial,sans-serif;font-size:14px;color:#475569;line-height:1.7;">
+                      <li>Toegang tot exclusieve netwerkbijeenkomsten</li>
+                      <li>Een ledenportaal met agenda en contacten</li>
+                      <li>Verbinding met gelijkgestemde ondernemers</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Security note -->
+          <tr>
+            <td style="padding:20px 16px 8px 16px;">
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:12px;color:#94a3b8;line-height:1.6;text-align:center;">
+                Deze link is persoonlijk en blijft 24 uur geldig. Heb jij geen aanmelding gedaan?
+                Negeer deze e-mail of neem contact met ons op.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:16px 16px 8px 16px;">
+              <p style="margin:0;font-family:Arial,sans-serif;font-size:13px;color:#64748b;line-height:1.6;">
+                <strong style="color:#0f172a;">Businessclub Al Islah</strong><br/>
+                <a href="${safeSite}" style="color:${primary};text-decoration:none;">${safeSite.replace(/^https?:\/\//, "")}</a>
+                &nbsp;·&nbsp;
+                <a href="mailto:info@businessclub-alislah.nl" style="color:${primary};text-decoration:none;">info@businessclub-alislah.nl</a>
+              </p>
+              <p style="margin:12px 0 0 0;font-family:Arial,sans-serif;font-size:11px;color:#94a3b8;">
+                © ${new Date().getFullYear()} Businessclub Al Islah. Alle rechten voorbehouden.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
