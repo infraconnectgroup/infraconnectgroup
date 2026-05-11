@@ -114,10 +114,10 @@ function ContactPage() {
                 <div>
                   <div className="font-semibold text-foreground">E-mail</div>
                   <a
-                    href="mailto:info@alislah.nl"
+                    href="mailto:info@businessclub-alislah.nl"
                     className="text-muted-foreground hover:text-primary"
                   >
-                    info@alislah.nl
+                    info@businessclub-alislah.nl
                   </a>
                 </div>
               </li>
