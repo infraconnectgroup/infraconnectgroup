@@ -45,7 +45,7 @@ function AboutPage() {
             centraal moeten staan in elke onderneming.
           </p>
           <p>
-            Door middel van maandelijkse bijeenkomsten, workshops en
+            Door middel van bijeenkomsten, workshops en
             mentortrajecten bieden wij onze leden een platform om zich
             professioneel én persoonlijk te ontwikkelen.
           </p>
