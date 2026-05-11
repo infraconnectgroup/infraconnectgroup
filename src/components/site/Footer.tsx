@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Facebook, Instagram, Linkedin, Mail } from "lucide-react";
+import { Facebook, Instagram, Youtube, Mail } from "lucide-react";
 import logo from "@/assets/logo-alislah.png";
 
 export function Footer() {
@@ -41,10 +41,10 @@ export function Footer() {
           <div>
             <h4 className="mb-3 text-sm font-semibold text-foreground">Volg ons</h4>
             <div className="flex gap-3">
-              <a href="#" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="Facebook"><Facebook size={18} /></a>
-              <a href="#" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="Instagram"><Instagram size={18} /></a>
-              <a href="#" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="LinkedIn"><Linkedin size={18} /></a>
-              <a href="mailto:info@alislah.nl" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="E-mail"><Mail size={18} /></a>
+              <a href="https://www.facebook.com/SheikhSaidelMokadmi" target="_blank" rel="noopener noreferrer" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="Facebook"><Facebook size={18} /></a>
+              <a href="https://www.instagram.com/sheikhsaidelmokadmi/" target="_blank" rel="noopener noreferrer" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="Instagram"><Instagram size={18} /></a>
+              <a href="https://www.youtube.com/@SheikhSaidelMokadmi" target="_blank" rel="noopener noreferrer" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="YouTube"><Youtube size={18} /></a>
+              <a href="mailto:info@businessclub-alislah.nl" className="rounded-full bg-background p-2 text-primary shadow-[var(--shadow-card)] hover:text-accent" aria-label="E-mail"><Mail size={18} /></a>
             </div>
           </div>
         </div>
