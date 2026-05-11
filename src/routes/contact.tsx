@@ -73,7 +73,7 @@ function ContactPage() {
     }
 
     if (!data?.ok) {
-      setErrMsg("Versturen mislukt. Probeer het opnieuw of mail naar info@alislah.nl.");
+      setErrMsg("Versturen mislukt. Probeer het opnieuw of mail naar info@businessclub-alislah.nl.");
       setStatus("error");
       return;
     }
