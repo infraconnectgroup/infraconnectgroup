@@ -1,3 +1,9 @@
+import { RouterProvider } from "@tanstack/react-router";
+import { router } from "./router";
+
 export default function App() {
-  return <h1>Al-Islah Connect</h1>
+  return <RouterProvider router={router} />;
 }
+
+
+

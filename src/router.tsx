@@ -1,16 +1,23 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createRouter } from "@tanstack/react-router";
-import { routeTree } from "./routeTree.gen";
+import {
+  createRouter,
+  createRootRoute,
+  createRoute,
+} from "@tanstack/react-router";
 
-export const getRouter = () => {
-  const queryClient = new QueryClient();
+import App from "./App";
 
-  const router = createRouter({
-    routeTree,
-    context: { queryClient },
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-  });
+const rootRoute = createRootRoute({
+  component: App,
+});
 
-  return router;
-};
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/",
+  component: () => <div>Home</div>,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute]);
+
+export const router = createRouter({
+  routeTree,
+});
