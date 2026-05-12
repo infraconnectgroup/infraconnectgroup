@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/useAuth";
 import { useEffect } from "react";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LogOut, ShieldCheck, Inbox, CalendarDays } from "lucide-react";
 import logo from "@/assets/logo-alislah.png";
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -31,6 +31,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <span className="font-display font-bold text-primary">Admin</span>
             </div>
           </Link>
+          <nav className="hidden items-center gap-1 sm:flex">
+            <Link to="/admin" activeOptions={{ exact: true }} activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
+              <Inbox size={14} /> Aanmeldingen
+            </Link>
+            <Link to="/admin/events" activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
+              <CalendarDays size={14} /> Events
+            </Link>
+          </nav>
           <div className="flex items-center gap-4">
             <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
             <button onClick={async () => { await signOut(); navigate({ to: "/" }); }} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
