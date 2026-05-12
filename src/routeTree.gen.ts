@@ -22,6 +22,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PortaalProfielRouteImport } from './routes/portaal.profiel'
 import { Route as PortaalLedenRouteImport } from './routes/portaal.leden'
 import { Route as PortaalAgendaRouteImport } from './routes/portaal.agenda'
+import { Route as AdminEventsRouteImport } from './routes/admin.events'
 
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
@@ -88,6 +89,11 @@ const PortaalAgendaRoute = PortaalAgendaRouteImport.update({
   path: '/portaal/agenda',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminEventsRoute = AdminEventsRouteImport.update({
+  id: '/admin/events',
+  path: '/admin/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
   '/portaal/leden': typeof PortaalLedenRoute
   '/portaal/profiel': typeof PortaalProfielRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
   '/portaal/leden': typeof PortaalLedenRoute
   '/portaal/profiel': typeof PortaalProfielRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
   '/portaal/leden': typeof PortaalLedenRoute
   '/portaal/profiel': typeof PortaalProfielRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/admin/events'
     | '/portaal/agenda'
     | '/portaal/leden'
     | '/portaal/profiel'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/admin/events'
     | '/portaal/agenda'
     | '/portaal/leden'
     | '/portaal/profiel'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/admin/events'
     | '/portaal/agenda'
     | '/portaal/leden'
     | '/portaal/profiel'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   MissieVisieRoute: typeof MissieVisieRoute
   OverOnsRoute: typeof OverOnsRoute
   PrivacyRoute: typeof PrivacyRoute
+  AdminEventsRoute: typeof AdminEventsRoute
   PortaalAgendaRoute: typeof PortaalAgendaRoute
   PortaalLedenRoute: typeof PortaalLedenRoute
   PortaalProfielRoute: typeof PortaalProfielRoute
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortaalAgendaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/events': {
+      id: '/admin/events'
+      path: '/admin/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AdminEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -304,6 +324,7 @@ const rootRouteChildren: RootRouteChildren = {
   MissieVisieRoute: MissieVisieRoute,
   OverOnsRoute: OverOnsRoute,
   PrivacyRoute: PrivacyRoute,
+  AdminEventsRoute: AdminEventsRoute,
   PortaalAgendaRoute: PortaalAgendaRoute,
   PortaalLedenRoute: PortaalLedenRoute,
   PortaalProfielRoute: PortaalProfielRoute,
