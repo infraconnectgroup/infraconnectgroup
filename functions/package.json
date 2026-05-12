@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build": "vite build && rm -rf functions && mkdir -p functions && cp dist/server/server.js functions/_worker.js"
+  }
+}
