@@ -1,9 +1,16 @@
-import { RouterProvider } from "@tanstack/react-router";
-import { router } from "./router";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-export default function App() {
-  return <RouterProvider router={router} />;
+function Home() {
+  return <h1>Al-Islah Connect</h1>;
 }
 
-
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
