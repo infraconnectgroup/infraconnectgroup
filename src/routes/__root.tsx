@@ -80,8 +80,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "Businessclub Al Islah" },
       { property: "og:description", content: "Businessclub Al Islah — netwerk voor moslimondernemers." },
       { name: "twitter:description", content: "Businessclub Al Islah — netwerk voor moslimondernemers." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/vqFibskmtQagBvwvSD6tZiA7wqA3/social-images/social-1778597590625-logo-alislah.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/vqFibskmtQagBvwvSD6tZiA7wqA3/social-images/social-1778597590625-logo-alislah.webp" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/4ac91b66-7a1e-4d10-8658-f3dd8657a0ac" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/4ac91b66-7a1e-4d10-8658-f3dd8657a0ac" },
     ],
     links: [
       { rel: "icon", href: "/favicon.png", type: "image/png" },
