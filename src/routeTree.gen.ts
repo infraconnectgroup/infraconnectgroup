@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OverOnsRouteImport } from './routes/over-ons'
 import { Route as MissieVisieRouteImport } from './routes/missie-visie'
@@ -24,6 +25,11 @@ import { Route as PortaalLedenRouteImport } from './routes/portaal.leden'
 import { Route as PortaalAgendaRouteImport } from './routes/portaal.agenda'
 import { Route as AdminEventsRouteImport } from './routes/admin.events'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
   '/portaal/leden': typeof PortaalLedenRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
   '/portaal/leden': typeof PortaalLedenRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/missie-visie': typeof MissieVisieRoute
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
   '/portaal/leden': typeof PortaalLedenRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/reset-password'
     | '/admin/events'
     | '/portaal/agenda'
     | '/portaal/leden'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/reset-password'
     | '/admin/events'
     | '/portaal/agenda'
     | '/portaal/leden'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/missie-visie'
     | '/over-ons'
     | '/privacy'
+    | '/reset-password'
     | '/admin/events'
     | '/portaal/agenda'
     | '/portaal/leden'
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   MissieVisieRoute: typeof MissieVisieRoute
   OverOnsRoute: typeof OverOnsRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   AdminEventsRoute: typeof AdminEventsRoute
   PortaalAgendaRoute: typeof PortaalAgendaRoute
   PortaalLedenRoute: typeof PortaalLedenRoute
@@ -214,6 +227,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -324,6 +344,7 @@ const rootRouteChildren: RootRouteChildren = {
   MissieVisieRoute: MissieVisieRoute,
   OverOnsRoute: OverOnsRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   AdminEventsRoute: AdminEventsRoute,
   PortaalAgendaRoute: PortaalAgendaRoute,
   PortaalLedenRoute: PortaalLedenRoute,

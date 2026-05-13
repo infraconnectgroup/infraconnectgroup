@@ -1,0 +1,222 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { SiteLayout } from "@/components/site/Layout";
+import { useEffect, useState, FormEvent } from "react";
+import { supabase } from "@/lib/supabase";
+import { CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Loader as Loader2, Eye, EyeOff } from "lucide-react";
+
+export const Route = createFileRoute("/reset-password")({
+  head: () => ({
+    meta: [{ title: "Wachtwoord instellen — Businessclub Al Islah" }],
+  }),
+  component: ResetPasswordPage,
+});
+
+function ResetPasswordPage() {
+  const navigate = useNavigate();
+  const [status, setStatus] = useState<"checking" | "ready" | "success" | "error" | "invalid">(
+    "checking",
+  );
+  const [errMsg, setErrMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    // Supabase handles the token from the URL hash automatically via onAuthStateChange.
+    // We need to wait for the PASSWORD_RECOVERY event which signals a valid recovery session.
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setStatus("ready");
+      } else if (event === "SIGNED_IN") {
+        // If already signed in without recovery flow, also allow setting password
+        // (covers invite links which arrive as SIGNED_IN after token exchange)
+        setStatus((prev) => (prev === "checking" ? "ready" : prev));
+      }
+    });
+
+    // Check if there's already an active recovery session
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setStatus((prev) => (prev === "checking" ? "ready" : prev));
+      } else {
+        // Give onAuthStateChange a moment to fire before declaring invalid
+        setTimeout(() => {
+          setStatus((prev) => (prev === "checking" ? "invalid" : prev));
+        }, 3000);
+      }
+    });
+
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const password = String(fd.get("password") ?? "");
+    const confirm = String(fd.get("confirm") ?? "");
+
+    if (password.length < 8) {
+      setErrMsg("Wachtwoord moet minimaal 8 tekens bevatten.");
+      return;
+    }
+    if (password !== confirm) {
+      setErrMsg("Wachtwoorden komen niet overeen.");
+      return;
+    }
+
+    setBusy(true);
+    setErrMsg("");
+
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      setErrMsg(error.message);
+      setBusy(false);
+      return;
+    }
+
+    setStatus("success");
+    setTimeout(() => navigate({ to: "/portaal" }), 2000);
+  }
+
+  if (status === "checking") {
+    return (
+      <SiteLayout>
+        <section className="flex min-h-[60vh] items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-4 text-muted-foreground">
+            <Loader2 className="animate-spin" size={36} />
+            <p className="text-sm">Sessie laden…</p>
+          </div>
+        </section>
+      </SiteLayout>
+    );
+  }
+
+  if (status === "invalid") {
+    return (
+      <SiteLayout>
+        <section className="py-20">
+          <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-[var(--shadow-card)]">
+            <AlertCircle className="mx-auto text-destructive" size={48} />
+            <h1 className="mt-4 font-display text-xl font-bold text-foreground">
+              Ongeldige of verlopen link
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Deze link is niet meer geldig. Vraag een nieuwe link aan of neem contact op.
+            </p>
+            <a
+              href="/login"
+              className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--primary-light)]"
+            >
+              Naar inloggen
+            </a>
+          </div>
+        </section>
+      </SiteLayout>
+    );
+  }
+
+  if (status === "success") {
+    return (
+      <SiteLayout>
+        <section className="py-20">
+          <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-[var(--shadow-card)]">
+            <CheckCircle2 className="mx-auto text-accent" size={56} />
+            <h1 className="mt-4 font-display text-2xl font-bold text-foreground">
+              Wachtwoord ingesteld!
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Je wordt doorgestuurd naar het ledenportaal…
+            </p>
+            <Loader2 className="mx-auto mt-4 animate-spin text-muted-foreground" size={20} />
+          </div>
+        </section>
+      </SiteLayout>
+    );
+  }
+
+  return (
+    <SiteLayout>
+      <section className="py-20">
+        <form
+          onSubmit={onSubmit}
+          className="mx-auto max-w-md space-y-5 rounded-2xl border border-border bg-card p-8 shadow-[var(--shadow-card)]"
+        >
+          <div>
+            <h1 className="font-display text-2xl font-bold text-foreground">
+              Wachtwoord instellen
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Kies een sterk wachtwoord voor je account.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Nieuw wachtwoord
+            </label>
+            <div className="relative">
+              <input
+                name="password"
+                type={showPw ? "text" : "password"}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 pr-10 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Minimaal 8 tekens.</p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Bevestig wachtwoord
+            </label>
+            <div className="relative">
+              <input
+                name="confirm"
+                type={showConfirm ? "text" : "password"}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 pr-10 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          {errMsg && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <span>{errMsg}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-[var(--shadow-gold)] hover:bg-[var(--accent-light)] disabled:opacity-60"
+          >
+            {busy && <Loader2 size={16} className="animate-spin" />}
+            {busy ? "Opslaan…" : "Wachtwoord instellen"}
+          </button>
+        </form>
+      </section>
+    </SiteLayout>
+  );
+}
