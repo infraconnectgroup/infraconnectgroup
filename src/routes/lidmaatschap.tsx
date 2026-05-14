@@ -15,7 +15,7 @@ export const Route = createFileRoute("/lidmaatschap")({
 const tiers = [
   {
     id: "brons", name: "Brons", price: "€ 10.000", per: "/ jaar",
-    features: ["Toegang tot netwerkbijeenkomsten", "Online ledenoverzicht", "Bebording"],
+    features: ["Toegang tot netwerkbijeenkomsten", "Online ledenoverzicht", "Bebording", "Logo op website"],
     highlight: false,
   },
   {
@@ -25,7 +25,7 @@ const tiers = [
   },
   {
     id: "goud", name: "Goud", price: "€ 25.000", per: "/ jaar",
-    features: ["Alles uit Zilver", "1-op-1 mentorgesprekken", "Premium evenementen", "Logo op website", "Umrah reis"],
+    features: ["Alles uit Zilver", "1-op-1 mentorgesprekken", "Premium evenementen"],
     highlight: false,
   },
 ] as const;
