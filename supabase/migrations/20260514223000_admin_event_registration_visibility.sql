@@ -22,7 +22,7 @@ create policy "Admins view all event registrations"
   as permissive
   for select
   to authenticated
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::text));
 
 drop policy if exists "Admins view profile names for events" on public.profiles;
 create policy "Admins view profile names for events"
@@ -30,4 +30,4 @@ create policy "Admins view profile names for events"
   as permissive
   for select
   to authenticated
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::text));
