@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { getAdminEventRegistrations } from "@/lib/admin-event-registrations.functions";
 import { supabase } from "@/lib/supabase";
 import {
   Calendar,
@@ -51,7 +49,6 @@ function formatRegistrationDate(value: string | null) {
 }
 
 function AdminEventsPage() {
-  const fetchAdminRegistrations = useServerFn(getAdminEventRegistrations);
   const [items, setItems] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -73,13 +70,48 @@ function AdminEventsPage() {
     setRegistrationsError("");
 
     try {
-      const result = await fetchAdminRegistrations({ data: { eventIds } });
-      const next = result?.registrationsByEvent ?? {};
-      setRegistrationsByEvent(next);
-      console.info("[admin.events] registrations refreshed", {
-        eventCount: eventIds.length,
-        registrationCount: Object.values(next).reduce((sum, registrations) => sum + registrations.length, 0),
-      });
+      const { data: regRows, error: regErr } = await supabase
+        .from("event_registrations")
+        .select("event_id,user_id,created_at")
+        .in("event_id", eventIds)
+        .order("created_at", { ascending: true, nullsFirst: false });
+
+      if (regErr) throw new Error(regErr.message);
+
+      const regs = (regRows ?? []) as Array<{ event_id: string; user_id: string; created_at: string | null }>;
+      const userIds = [...new Set(regs.map((r) => r.user_id).filter(Boolean))];
+
+      let profilesById = new Map<string, { full_name: string | null; company: string | null; email: string | null }>();
+      if (userIds.length > 0) {
+        const { data: profileRows, error: profErr } = await supabase
+          .from("profiles")
+          .select("id,full_name,company,email")
+          .in("id", userIds);
+
+        if (profErr) throw new Error(profErr.message);
+
+        profilesById = new Map(
+          ((profileRows ?? []) as Array<{ id: string; full_name: string | null; company: string | null; email: string | null }>).map(
+            (p) => [p.id, { full_name: p.full_name, company: p.company, email: p.email }],
+          ),
+        );
+      }
+
+      const grouped: RegistrationsByEvent = {};
+      for (const row of regs) {
+        const profile = profilesById.get(row.user_id);
+        if (!grouped[row.event_id]) grouped[row.event_id] = [];
+        grouped[row.event_id].push({
+          event_id: row.event_id,
+          user_id: row.user_id,
+          created_at: row.created_at,
+          full_name: profile?.full_name ?? null,
+          company: profile?.company ?? null,
+          email: profile?.email ?? null,
+        });
+      }
+
+      setRegistrationsByEvent(grouped);
     } catch (error) {
       console.error("[admin.events] failed to load registrations", error);
       setRegistrationsByEvent({});
