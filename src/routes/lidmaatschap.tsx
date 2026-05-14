@@ -14,18 +14,18 @@ export const Route = createFileRoute("/lidmaatschap")({
 
 const tiers = [
   {
-    id: "brons", name: "Brons", price: "€ 25", per: "/ maand",
-    features: ["Toegang tot netwerkbijeenkomsten", "Online ledenoverzicht", "Nieuwsbrief"],
+    id: "brons", name: "Brons", price: "€ 10.000", per: "/ jaar",
+    features: ["Toegang tot netwerkbijeenkomsten", "Online ledenoverzicht", "Bebording"],
     highlight: false,
   },
   {
-    id: "zilver", name: "Zilver", price: "€ 50", per: "/ maand",
-    features: ["Alles uit Brons", "Toegang tot workshops & lezingen", "Korting op events", "Vermelding in ledenboek"],
+    id: "zilver", name: "Zilver", price: "€ 15.000", per: "/ jaar",
+    features: ["Alles uit Brons", "Toegang tot workshops & lezingen", "Quickscan"],
     highlight: true,
   },
   {
-    id: "goud", name: "Goud", price: "€ 100", per: "/ maand",
-    features: ["Alles uit Zilver", "1-op-1 mentorgesprekken", "Premium evenementen", "Logo op website"],
+    id: "goud", name: "Goud", price: "€ 25.000", per: "/ jaar",
+    features: ["Alles uit Zilver", "1-op-1 mentorgesprekken", "Premium evenementen", "Logo op website", "Umrah reis"],
     highlight: false,
   },
 ] as const;
