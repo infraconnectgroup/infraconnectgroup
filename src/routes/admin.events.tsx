@@ -208,7 +208,17 @@ function AdminEventsPage() {
 }
 
 function Section({
-  title, items, onEdit, onDelete, onRegs, empty, muted,
+  title,
+  items,
+  onEdit,
+  onDelete,
+  empty,
+  muted,
+  expandedEventId,
+  onToggle,
+  registrationsByEvent,
+  registrationsLoading,
+  registrationsError,
 }: {
   title: string;
   items: EventRow[];
@@ -230,90 +240,139 @@ function Section({
       ) : (
         <div className="space-y-3">
           {items.map((e) => (
-            <div key={e.id} className={`rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] ${muted ? "opacity-75" : ""}`}>
-              {(() => {
-                const registrations = registrationsByEvent[e.id] ?? [];
-                const isOpen = expandedEventId === e.id;
-
-                return (
-                  <>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
-                    <Calendar size={12} />
-                    {new Date(e.event_date).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}
-                  </div>
-                  <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
-                  {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}
-                  {e.description && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{e.description}</p>}
-                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                    <Users size={12} />
-                    {registrations.length} {registrations.length === 1 ? "aanmelding" : "aanmeldingen"}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => onToggle(e.id)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
-                    <Users size={14} /> Deelnemers {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                  </button>
-                  <button onClick={() => onEdit(e)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
-                    <Pencil size={14} /> Bewerken
-                  </button>
-                  <button onClick={() => onDelete(e.id)} className="inline-flex items-center gap-1.5 rounded-md border border-rose-300 bg-background px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50">
-                    <Trash2 size={14} /> Verwijderen
-                  </button>
-                </div>
-              </div>
-              {isOpen && (
-                <div className="mt-4 border-t border-border pt-4">
-                  {registrationsLoading ? (
-                    <div className="flex items-center justify-center py-8 text-muted-foreground">
-                      <Loader2 className="animate-spin" />
-                    </div>
-                  ) : registrationsError ? (
-                    <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-destructive">
-                      {registrationsError}
-                    </p>
-                  ) : registrations.length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-muted-foreground">
-                      Nog geen aanmeldingen
-                    </p>
-                  ) : (
-                    <div className="overflow-hidden rounded-xl border border-border">
-                      <ul className="divide-y divide-border">
-                        {registrations.map((registration) => (
-                          <li
-                            key={`${registration.user_id}-${registration.created_at ?? "unknown"}`}
-                            className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] sm:items-center"
-                          >
-                            <div className="min-w-0">
-                              <div className="truncate font-medium text-foreground">
-                                {registration.full_name ?? registration.company ?? "Onbekend lid"}
-                              </div>
-                              {registration.company && (
-                                <div className="truncate text-xs text-muted-foreground">{registration.company}</div>
-                              )}
-                            </div>
-                            <div className="min-w-0 text-sm text-muted-foreground">
-                              {registration.email ?? "Geen e-mail beschikbaar"}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {formatRegistrationDate(registration.created_at)}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-                  </>
-                );
-              })()}
-            </div>
+            <EventCard
+              key={e.id}
+              event={e}
+              muted={muted}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              isOpen={expandedEventId === e.id}
+              onToggle={onToggle}
+              registrations={registrationsByEvent[e.id] ?? []}
+              registrationsLoading={registrationsLoading}
+              registrationsError={registrationsError}
+            />
           ))}
         </div>
       )}
     </section>
+  );
+}
+
+function EventCard({
+  event,
+  muted,
+  onEdit,
+  onDelete,
+  isOpen,
+  onToggle,
+  registrations,
+  registrationsLoading,
+  registrationsError,
+}: {
+  event: EventRow;
+  muted?: boolean;
+  onEdit: (e: EventRow) => void;
+  onDelete: (id: string) => void;
+  isOpen: boolean;
+  onToggle: (eventId: string) => void;
+  registrations: Registration[];
+  registrationsLoading: boolean;
+  registrationsError: string;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] ${muted ? "opacity-75" : ""}`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
+            <Calendar size={12} />
+            {new Date(event.event_date).toLocaleString("nl-NL", {
+              dateStyle: "long",
+              timeStyle: "short",
+            })}
+          </div>
+          <h3 className="mt-1 font-display text-lg font-bold">{event.title}</h3>
+          {event.location && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin size={12} /> {event.location}
+            </p>
+          )}
+          {event.description && (
+            <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{event.description}</p>
+          )}
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            <Users size={12} />
+            {registrations.length} {registrations.length === 1 ? "aanmelding" : "aanmeldingen"}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => onToggle(event.id)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+          >
+            <Users size={14} /> Deelnemers {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+          <button
+            onClick={() => onEdit(event)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+          >
+            <Pencil size={14} /> Bewerken
+          </button>
+          <button
+            onClick={() => onDelete(event.id)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-rose-300 bg-background px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50"
+          >
+            <Trash2 size={14} /> Verwijderen
+          </button>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="mt-4 border-t border-border pt-4">
+          {registrationsLoading ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <Loader2 className="animate-spin" />
+            </div>
+          ) : registrationsError ? (
+            <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-destructive">
+              {registrationsError}
+            </p>
+          ) : registrations.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-muted-foreground">
+              Nog geen aanmeldingen
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-border">
+              <ul className="divide-y divide-border">
+                {registrations.map((registration: Registration) => (
+                  <li
+                    key={`${registration.user_id}-${registration.created_at ?? "unknown"}`}
+                    className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] sm:items-center"
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-medium text-foreground">
+                        {registration.full_name ?? registration.company ?? "Onbekend lid"}
+                      </div>
+                      {registration.company && (
+                        <div className="truncate text-xs text-muted-foreground">{registration.company}</div>
+                      )}
+                    </div>
+                    <div className="min-w-0 text-sm text-muted-foreground">
+                      {registration.email ?? "Geen e-mail beschikbaar"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatRegistrationDate(registration.created_at)}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
