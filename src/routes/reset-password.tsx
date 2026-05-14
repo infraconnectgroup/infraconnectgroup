@@ -23,7 +23,6 @@ function ResetPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [hasRecoveryTokens, setHasRecoveryTokens] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,13 +47,12 @@ function ResetPasswordPage() {
         return;
       }
 
-      if (event === "SIGNED_IN" && hasRecoveryTokens && hasSession) {
+      if (event === "SIGNED_IN" && recoveryState.hasRecoveryTokens && hasSession) {
         markReady();
       }
     };
 
     const recoveryState = readRecoveryStateFromUrl();
-    setHasRecoveryTokens(recoveryState.hasRecoveryTokens);
 
     if (recoveryState.type === "recovery" && !recoveryState.accessToken) {
       markReady();
@@ -86,7 +84,7 @@ function ResetPasswordPage() {
 
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
-      if (data.session && hasRecoveryTokens) markReady();
+      if (data.session && recoveryState.hasRecoveryTokens) markReady();
       else startInvalidFallback();
     });
 
