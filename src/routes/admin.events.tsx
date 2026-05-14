@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { getAdminEventRegistrations } from "@/lib/admin-event-registrations.functions";
 import { supabase } from "@/lib/supabase";
 import {
   Calendar,
