@@ -1,6 +1,7 @@
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
+import { z } from "zod";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "@/lib/supabase";
 
 const inputSchema = z.object({
@@ -23,11 +24,7 @@ type ProfileRow = {
 export const getAdminEventRegistrations = createServerFn({ method: "POST" })
   .inputValidator((input) => inputSchema.parse(input))
   .handler(async ({ data }) => {
-    const authHeader = globalThis.Headers ? undefined : undefined;
-    void authHeader;
-
-    const requestHeaders = new Headers();
-    const request = (await import("@tanstack/react-start/server")).getRequest();
+    const request = getRequest();
     const authorization = request.headers.get("authorization");
 
     if (!authorization) {
@@ -113,7 +110,7 @@ export const getAdminEventRegistrations = createServerFn({ method: "POST" })
         created_at: row.created_at,
         full_name: profile?.full_name ?? null,
         company: profile?.company ?? null,
-        email: profile?.email ?? user.email ?? null,
+        email: profile?.email ?? null,
       };
 
       if (!acc[row.event_id]) acc[row.event_id] = [];
