@@ -93,6 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
   component: RootComponent,
+  shellComponent: RootDocument,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
@@ -102,8 +103,21 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <HeadContent />
       <Outlet />
     </QueryClientProvider>
+  );
+}
+
+function RootDocument({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="nl">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
   );
 }
