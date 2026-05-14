@@ -20,7 +20,7 @@ type EventRow = {
 type Registration = {
   user_id: string;
   created_at: string;
-  profiles?: { full_name: string | null; company: string | null; email?: string | null } | null;
+  profiles?: { full_name: string | null; company: string | null } | null;
 };
 
 function AdminEventsPage() {
