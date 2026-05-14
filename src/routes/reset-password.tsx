@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/Layout";
 import { useEffect, useState, FormEvent } from "react";
+import type { AuthChangeEvent } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Loader as Loader2, Eye, EyeOff } from "lucide-react";
 
@@ -22,31 +23,65 @@ function ResetPasswordPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
-    // Supabase handles the token from the URL hash automatically via onAuthStateChange.
-    // We need to wait for the PASSWORD_RECOVERY event which signals a valid recovery session.
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setStatus("ready");
-      } else if (event === "SIGNED_IN") {
-        // If already signed in without recovery flow, also allow setting password
-        // (covers invite links which arrive as SIGNED_IN after token exchange)
-        setStatus((prev) => (prev === "checking" ? "ready" : prev));
-      }
-    });
+    let cancelled = false;
+    let invalidTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // Check if there's already an active recovery session
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setStatus((prev) => (prev === "checking" ? "ready" : prev));
-      } else {
-        // Give onAuthStateChange a moment to fire before declaring invalid
-        setTimeout(() => {
+    const markReady = () => {
+      if (!cancelled) setStatus("ready");
+    };
+
+    const startInvalidFallback = () => {
+      if (invalidTimer) clearTimeout(invalidTimer);
+      invalidTimer = setTimeout(() => {
+        if (!cancelled) {
           setStatus((prev) => (prev === "checking" ? "invalid" : prev));
-        }, 3000);
+        }
+      }, 3000);
+    };
+
+    const handleEvent = (event: AuthChangeEvent) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        markReady();
       }
+    };
+
+    handleEventFromUrl();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      handleEvent(event);
     });
 
-    return () => sub.subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      if (data.session) markReady();
+      else startInvalidFallback();
+    });
+
+    return () => {
+      cancelled = true;
+      if (invalidTimer) clearTimeout(invalidTimer);
+      sub.subscription.unsubscribe();
+    };
+
+    function handleEventFromUrl() {
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const type = hash.get("type");
+      const accessToken = hash.get("access_token");
+      const refreshToken = hash.get("refresh_token");
+
+      if (type === "recovery") {
+        markReady();
+      }
+
+      if (!accessToken || !refreshToken) return;
+
+      void supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      }).then(({ error }) => {
+        if (!error) markReady();
+      });
+    }
   }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
