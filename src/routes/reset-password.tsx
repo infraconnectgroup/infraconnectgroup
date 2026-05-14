@@ -5,6 +5,8 @@ import type { AuthChangeEvent } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Loader as Loader2, Eye, EyeOff } from "lucide-react";
 
+const RECOVERY_HASH_KEYS = ["access_token", "refresh_token", "type", "expires_at", "expires_in", "token_type"] as const;
+
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [{ title: "Wachtwoord instellen — Businessclub Al Islah" }],
@@ -21,6 +23,7 @@ function ResetPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [hasRecoveryTokens, setHasRecoveryTokens] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,21 +42,51 @@ function ResetPasswordPage() {
       }, 3000);
     };
 
-    const handleEvent = (event: AuthChangeEvent) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+    const handleEvent = (event: AuthChangeEvent, hasSession: boolean) => {
+      if (event === "PASSWORD_RECOVERY") {
+        markReady();
+        return;
+      }
+
+      if (event === "SIGNED_IN" && hasRecoveryTokens && hasSession) {
         markReady();
       }
     };
 
-    handleEventFromUrl();
+    const recoveryState = readRecoveryStateFromUrl();
+    setHasRecoveryTokens(recoveryState.hasRecoveryTokens);
 
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      handleEvent(event);
+    if (recoveryState.type === "recovery" && !recoveryState.accessToken) {
+      markReady();
+    }
+
+    if (recoveryState.accessToken && recoveryState.refreshToken) {
+      void supabase.auth
+        .setSession({
+          access_token: recoveryState.accessToken,
+          refresh_token: recoveryState.refreshToken,
+        })
+        .then(({ error }) => {
+          if (cancelled) return;
+
+          if (error) {
+            setErrMsg("Deze herstel-link is ongeldig of verlopen.");
+            setStatus("invalid");
+            return;
+          }
+
+          clearRecoveryHash();
+          markReady();
+        });
+    }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      handleEvent(event, !!session);
     });
 
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
-      if (data.session) markReady();
+      if (data.session && hasRecoveryTokens) markReady();
       else startInvalidFallback();
     });
 
@@ -63,24 +96,20 @@ function ResetPasswordPage() {
       sub.subscription.unsubscribe();
     };
 
-    function handleEventFromUrl() {
+    function readRecoveryStateFromUrl() {
       const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-      const type = hash.get("type");
-      const accessToken = hash.get("access_token");
-      const refreshToken = hash.get("refresh_token");
 
-      if (type === "recovery") {
-        markReady();
-      }
+      return {
+        type: hash.get("type"),
+        accessToken: hash.get("access_token"),
+        refreshToken: hash.get("refresh_token"),
+        hasRecoveryTokens: RECOVERY_HASH_KEYS.some((key) => hash.has(key)),
+      };
+    }
 
-      if (!accessToken || !refreshToken) return;
-
-      void supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      }).then(({ error }) => {
-        if (!error) markReady();
-      });
+    function clearRecoveryHash() {
+      if (!window.location.hash) return;
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
     }
   }, []);
 
