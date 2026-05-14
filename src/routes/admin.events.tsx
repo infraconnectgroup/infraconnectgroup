@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/useAuth";
 import {
   Calendar,
   ChevronDown,
@@ -49,6 +50,7 @@ function formatRegistrationDate(value: string | null) {
 }
 
 function AdminEventsPage() {
+  const { user, role, loading: authLoading } = useAuth();
   const [items, setItems] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -58,7 +60,7 @@ function AdminEventsPage() {
   const [registrationsError, setRegistrationsError] = useState("");
   const [registrationsByEvent, setRegistrationsByEvent] = useState<RegistrationsByEvent>({});
 
-  async function loadRegistrations(eventIds: string[]) {
+  const loadRegistrations = useCallback(async (eventIds: string[]) => {
     if (eventIds.length === 0) {
       setRegistrationsByEvent({});
       setRegistrationsError("");
@@ -70,15 +72,34 @@ function AdminEventsPage() {
     setRegistrationsError("");
 
     try {
-      const { data: regRows, error: regErr } = await supabase
+      const { data: regRowsWithCreatedAt, error: regErr } = await supabase
         .from("event_registrations")
         .select("event_id,user_id,created_at")
         .in("event_id", eventIds)
         .order("created_at", { ascending: true, nullsFirst: false });
 
-      if (regErr) throw new Error(regErr.message);
+      let regs: Array<{ event_id: string; user_id: string; created_at: string | null }>;
 
-      const regs = (regRows ?? []) as Array<{ event_id: string; user_id: string; created_at: string | null }>;
+      if (regErr) {
+        if (!regErr.message.toLowerCase().includes("created_at")) {
+          throw new Error(regErr.message);
+        }
+
+        const { data: fallbackRows, error: fallbackErr } = await supabase
+          .from("event_registrations")
+          .select("event_id,user_id")
+          .in("event_id", eventIds);
+
+        if (fallbackErr) throw new Error(fallbackErr.message);
+
+        regs = ((fallbackRows ?? []) as Array<{ event_id: string; user_id: string }>).map((row) => ({
+          ...row,
+          created_at: null,
+        }));
+      } else {
+        regs = (regRowsWithCreatedAt ?? []) as Array<{ event_id: string; user_id: string; created_at: string | null }>;
+      }
+
       const userIds = [...new Set(regs.map((r) => r.user_id).filter(Boolean))];
 
       let profilesById = new Map<string, { full_name: string | null; company: string | null; email: string | null }>();
@@ -119,9 +140,9 @@ function AdminEventsPage() {
     } finally {
       setRegistrationsLoading(false);
     }
-  }
+  }, []);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setLoadError("");
 
@@ -143,13 +164,23 @@ function AdminEventsPage() {
     setItems(nextItems);
     setLoading(false);
     await loadRegistrations(nextItems.map((item) => item.id));
-  }
+  }, [loadRegistrations]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user || role !== "admin") {
+      setItems([]);
+      setRegistrationsByEvent({});
+      setLoading(false);
+      return;
+    }
+
     void load();
-  }, []);
+  }, [authLoading, user, role, load]);
 
   useEffect(() => {
+    if (authLoading || !user || role !== "admin" || items.length === 0) return;
+
     const channel = supabase
       .channel("admin-event-registrations")
       .on(
@@ -165,7 +196,7 @@ function AdminEventsPage() {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [items]);
+  }, [authLoading, user, role, items, loadRegistrations]);
 
   async function remove(id: string) {
     if (!confirm("Dit event verwijderen? Aanmeldingen worden ook verwijderd.")) return;
