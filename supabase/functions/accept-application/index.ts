@@ -171,12 +171,13 @@ Deno.serve(async (req) => {
 
     // 8) Generate password setup link + send branded onboarding email
     const SITE_URL = Deno.env.get("SITE_URL") ?? "https://businessclub-alislah.nl";
+    const redirectTo = `${SITE_URL.replace(/\/$/, "")}/reset-password`;
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-      type: "recovery",
+      type: "invite",
       email,
-      options: { redirectTo: `${SITE_URL}/reset-password` },
+      options: { redirectTo },
     });
-    if (linkErr) console.error("generateLink error:", linkErr.message);
+    if (linkErr) console.error("generateLink error:", linkErr.message, "redirectTo:", redirectTo);
 
     const actionLink =
       linkData?.properties?.action_link ??

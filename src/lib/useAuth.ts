@@ -11,18 +11,30 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (!s) { setRole(null); setLoading(false); return; }
-      void loadRole(s.user.id);
-    });
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       if (data.session) void loadRole(data.session.user.id);
       else setLoading(false);
     });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+
+      if (event === "INITIAL_SESSION" && !s) {
+        return;
+      }
+
+      if (!s) {
+        setRole(null);
+        setLoading(false);
+        return;
+      }
+
+      void loadRole(s.user.id);
+    });
+
     return () => sub.subscription.unsubscribe();
 
     async function loadRole(userId: string) {
