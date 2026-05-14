@@ -19,9 +19,16 @@ type EventRow = {
 
 type Registration = {
   user_id: string;
-  created_at: string;
+  created_at: string | null;
   profiles?: { full_name: string | null; company: string | null } | null;
 };
+
+function formatRegistrationDate(value: string | null) {
+  if (!value) return "Onbekend";
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Onbekend" : date.toLocaleDateString("nl-NL");
+}
 
 function AdminEventsPage() {
   const [items, setItems] = useState<EventRow[]>([]);
@@ -263,7 +270,7 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
                   <div className="font-medium">{r.profiles?.full_name ?? "—"}</div>
                   {r.profiles?.company && <div className="text-xs text-muted-foreground">{r.profiles.company}</div>}
                 </div>
-                <div className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("nl-NL")}</div>
+                <div className="text-xs text-muted-foreground">{formatRegistrationDate(r.created_at)}</div>
               </li>
             ))}
           </ul>
