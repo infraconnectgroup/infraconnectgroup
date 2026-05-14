@@ -28,12 +28,17 @@ function LoginPage() {
   async function onForgot(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setForgotErr(""); setForgotMsg(""); setForgotBusy(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setForgotBusy(false);
-    if (error) setForgotErr(error.message);
-    else setForgotMsg("Check je e-mail voor de herstel-link.");
+    try {
+      const { error } = await supabase.functions.invoke("send-password-reset", {
+        body: { email: forgotEmail },
+      });
+      setForgotBusy(false);
+      if (error) setForgotErr(error.message);
+      else setForgotMsg("Als dit e-mailadres bekend is, ontvang je binnen enkele minuten een herstel-link.");
+    } catch (err) {
+      setForgotBusy(false);
+      setForgotErr(err instanceof Error ? err.message : "Versturen mislukt");
+    }
   }
 
   useEffect(() => {
