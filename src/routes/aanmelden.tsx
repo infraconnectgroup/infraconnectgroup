@@ -112,9 +112,9 @@ function ApplyPage() {
               className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="" disabled>Kies een pakket…</option>
-              <option value="brons">Brons — € 25/maand</option>
-              <option value="zilver">Zilver — € 50/maand</option>
-              <option value="goud">Goud — € 100/maand</option>
+              <option value="brons">Brons — € 10.000/jaar</option>
+              <option value="zilver">Zilver — € 15.000/jaar</option>
+              <option value="goud">Goud — € 25.000/jaar</option>
             </select>
             {fieldErrors.membership_tier && <p className="mt-1 text-xs text-destructive">{fieldErrors.membership_tier}</p>}
           </div>
