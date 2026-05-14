@@ -1,8 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AdminShell } from "@/components/admin/AdminShell";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { AdminShell } from "@/components/admin/AdminShell";
+import { getAdminEventRegistrations } from "@/lib/admin-event-registrations.functions";
 import { supabase } from "@/lib/supabase";
-import { Calendar, MapPin, Plus, Pencil, Trash2, Users, Loader2, X } from "lucide-react";
+import {
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  MapPin,
+  Pencil,
+  Plus,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/events")({
   component: AdminEventsPage,
@@ -18,34 +31,109 @@ type EventRow = {
 };
 
 type Registration = {
+  event_id: string;
   user_id: string;
   created_at: string | null;
-  profiles?: { full_name: string | null; company: string | null } | null;
+  full_name: string | null;
+  company: string | null;
+  email: string | null;
 };
+
+type RegistrationsByEvent = Record<string, Registration[]>;
 
 function formatRegistrationDate(value: string | null) {
   if (!value) return "Onbekend";
 
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Onbekend" : date.toLocaleDateString("nl-NL");
+  return Number.isNaN(date.getTime())
+    ? "Onbekend"
+    : date.toLocaleString("nl-NL", { dateStyle: "medium", timeStyle: "short" });
 }
 
 function AdminEventsPage() {
+  const fetchAdminRegistrations = useServerFn(getAdminEventRegistrations);
   const [items, setItems] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [editing, setEditing] = useState<EventRow | "new" | null>(null);
-  const [viewRegs, setViewRegs] = useState<EventRow | null>(null);
+  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+  const [registrationsLoading, setRegistrationsLoading] = useState(false);
+  const [registrationsError, setRegistrationsError] = useState("");
+  const [registrationsByEvent, setRegistrationsByEvent] = useState<RegistrationsByEvent>({});
+
+  async function loadRegistrations(eventIds: string[]) {
+    if (eventIds.length === 0) {
+      setRegistrationsByEvent({});
+      setRegistrationsError("");
+      setRegistrationsLoading(false);
+      return;
+    }
+
+    setRegistrationsLoading(true);
+    setRegistrationsError("");
+
+    try {
+      const result = await fetchAdminRegistrations({ data: { eventIds } });
+      const next = result?.registrationsByEvent ?? {};
+      setRegistrationsByEvent(next);
+      console.info("[admin.events] registrations refreshed", {
+        eventCount: eventIds.length,
+        registrationCount: Object.values(next).reduce((sum, registrations) => sum + registrations.length, 0),
+      });
+    } catch (error) {
+      console.error("[admin.events] failed to load registrations", error);
+      setRegistrationsByEvent({});
+      setRegistrationsError(error instanceof Error ? error.message : "Registraties konden niet geladen worden.");
+    } finally {
+      setRegistrationsLoading(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase
+    setLoadError("");
+
+    const { data, error } = await supabase
       .from("events")
       .select("*")
       .order("event_date", { ascending: false });
-    setItems((data as EventRow[]) ?? []);
+
+    if (error) {
+      console.error("[admin.events] failed to load events", error);
+      setItems([]);
+      setRegistrationsByEvent({});
+      setLoadError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const nextItems = (data as EventRow[]) ?? [];
+    setItems(nextItems);
     setLoading(false);
+    await loadRegistrations(nextItems.map((item) => item.id));
   }
-  useEffect(() => { void load(); }, []);
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-event-registrations")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "event_registrations" },
+        () => {
+          if (items.length === 0) return;
+          void loadRegistrations(items.map((item) => item.id));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [items]);
 
   async function remove(id: string) {
     if (!confirm("Dit event verwijderen? Aanmeldingen worden ook verwijderd.")) return;
@@ -74,10 +162,37 @@ function AdminEventsPage() {
 
       {loading ? (
         <div className="flex justify-center py-12 text-muted-foreground"><Loader2 className="animate-spin" /></div>
+      ) : loadError ? (
+        <p className="mt-8 rounded-xl border border-dashed border-border bg-background p-8 text-center text-sm text-destructive">
+          {loadError}
+        </p>
       ) : (
         <>
-          <Section title="Komende events" items={upcoming} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Nog geen komende events." />
-          <Section title="Geweest" items={past} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Geen eerdere events." muted />
+          <Section
+            title="Komende events"
+            items={upcoming}
+            onEdit={setEditing}
+            onDelete={remove}
+            empty="Nog geen komende events."
+            expandedEventId={expandedEventId}
+            onToggle={(eventId) => setExpandedEventId((current) => (current === eventId ? null : eventId))}
+            registrationsByEvent={registrationsByEvent}
+            registrationsLoading={registrationsLoading}
+            registrationsError={registrationsError}
+          />
+          <Section
+            title="Geweest"
+            items={past}
+            onEdit={setEditing}
+            onDelete={remove}
+            empty="Geen eerdere events."
+            muted
+            expandedEventId={expandedEventId}
+            onToggle={(eventId) => setExpandedEventId((current) => (current === eventId ? null : eventId))}
+            registrationsByEvent={registrationsByEvent}
+            registrationsLoading={registrationsLoading}
+            registrationsError={registrationsError}
+          />
         </>
       )}
 
@@ -88,7 +203,6 @@ function AdminEventsPage() {
           onSaved={() => { setEditing(null); void load(); }}
         />
       )}
-      {viewRegs && <RegistrationsDialog event={viewRegs} onClose={() => setViewRegs(null)} />}
     </AdminShell>
   );
 }
@@ -100,9 +214,13 @@ function Section({
   items: EventRow[];
   onEdit: (e: EventRow) => void;
   onDelete: (id: string) => void;
-  onRegs: (e: EventRow) => void;
   empty: string;
   muted?: boolean;
+  expandedEventId: string | null;
+  onToggle: (eventId: string) => void;
+  registrationsByEvent: RegistrationsByEvent;
+  registrationsLoading: boolean;
+  registrationsError: string;
 }) {
   return (
     <section className="mt-8">
@@ -113,6 +231,12 @@ function Section({
         <div className="space-y-3">
           {items.map((e) => (
             <div key={e.id} className={`rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] ${muted ? "opacity-75" : ""}`}>
+              {(() => {
+                const registrations = registrationsByEvent[e.id] ?? [];
+                const isOpen = expandedEventId === e.id;
+
+                return (
+                  <>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
@@ -122,10 +246,14 @@ function Section({
                   <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
                   {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}
                   {e.description && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{e.description}</p>}
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                    <Users size={12} />
+                    {registrations.length} {registrations.length === 1 ? "aanmelding" : "aanmeldingen"}
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => onRegs(e)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
-                    <Users size={14} /> Aanmeldingen
+                  <button onClick={() => onToggle(e.id)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
+                    <Users size={14} /> Deelnemers {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </button>
                   <button onClick={() => onEdit(e)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
                     <Pencil size={14} /> Bewerken
@@ -135,6 +263,52 @@ function Section({
                   </button>
                 </div>
               </div>
+              {isOpen && (
+                <div className="mt-4 border-t border-border pt-4">
+                  {registrationsLoading ? (
+                    <div className="flex items-center justify-center py-8 text-muted-foreground">
+                      <Loader2 className="animate-spin" />
+                    </div>
+                  ) : registrationsError ? (
+                    <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-destructive">
+                      {registrationsError}
+                    </p>
+                  ) : registrations.length === 0 ? (
+                    <p className="rounded-xl border border-dashed border-border bg-background p-6 text-center text-sm text-muted-foreground">
+                      Nog geen aanmeldingen
+                    </p>
+                  ) : (
+                    <div className="overflow-hidden rounded-xl border border-border">
+                      <ul className="divide-y divide-border">
+                        {registrations.map((registration) => (
+                          <li
+                            key={`${registration.user_id}-${registration.created_at ?? "unknown"}`}
+                            className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] sm:items-center"
+                          >
+                            <div className="min-w-0">
+                              <div className="truncate font-medium text-foreground">
+                                {registration.full_name ?? registration.company ?? "Onbekend lid"}
+                              </div>
+                              {registration.company && (
+                                <div className="truncate text-xs text-muted-foreground">{registration.company}</div>
+                              )}
+                            </div>
+                            <div className="min-w-0 text-sm text-muted-foreground">
+                              {registration.email ?? "Geen e-mail beschikbaar"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatRegistrationDate(registration.created_at)}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -215,68 +389,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="mb-1.5 block text-sm font-medium">{label}</span>
       {children}
     </label>
-  );
-}
-
-function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () => void }) {
-  const [regs, setRegs] = useState<Registration[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    void (async () => {
-      setLoading(true);
-      setError("");
-
-      const { data, error } = await supabase
-        .from("event_registrations")
-        .select("user_id, created_at, profiles(full_name, company)")
-        .eq("event_id", event.id)
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        setRegs([]);
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-
-      setRegs((data as unknown as Registration[]) ?? []);
-      setLoading(false);
-    })();
-  }, [event.id]);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl bg-background p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-xl font-bold">Aanmeldingen</h2>
-            <p className="text-xs text-muted-foreground">{event.title}</p>
-          </div>
-          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-secondary"><X size={18} /></button>
-        </div>
-        {loading ? (
-          <div className="flex justify-center py-8 text-muted-foreground"><Loader2 className="animate-spin" /></div>
-        ) : error ? (
-          <p className="rounded-xl border border-dashed border-border bg-background p-8 text-center text-sm text-rose-700">{error}</p>
-        ) : regs.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-border bg-background p-8 text-center text-sm text-muted-foreground">Nog geen aanmeldingen.</p>
-        ) : (
-          <ul className="divide-y divide-border rounded-xl border border-border">
-            {regs.map((r) => (
-              <li key={r.user_id} className="flex items-center justify-between p-3 text-sm">
-                <div>
-                  <div className="font-medium">{r.profiles?.full_name ?? "—"}</div>
-                  {r.profiles?.company && <div className="text-xs text-muted-foreground">{r.profiles.company}</div>}
-                </div>
-                <div className="text-xs text-muted-foreground">{formatRegistrationDate(r.created_at)}</div>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-3 text-xs text-muted-foreground">Totaal: {regs.length}</p>
-      </div>
-    </div>
   );
 }
