@@ -214,14 +214,26 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () => void }) {
   const [regs, setRegs] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase
+      setLoading(true);
+      setError("");
+
+      const { data, error } = await supabase
         .from("event_registrations")
         .select("user_id, created_at, profiles(full_name, company)")
         .eq("event_id", event.id)
         .order("created_at", { ascending: true });
+
+      if (error) {
+        setRegs([]);
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
       setRegs((data as unknown as Registration[]) ?? []);
       setLoading(false);
     })();
@@ -239,6 +251,8 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
         </div>
         {loading ? (
           <div className="flex justify-center py-8 text-muted-foreground"><Loader2 className="animate-spin" /></div>
+        ) : error ? (
+          <p className="rounded-xl border border-dashed border-border bg-background p-8 text-center text-sm text-rose-700">{error}</p>
         ) : regs.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border bg-background p-8 text-center text-sm text-muted-foreground">Nog geen aanmeldingen.</p>
         ) : (
