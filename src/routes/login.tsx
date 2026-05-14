@@ -19,6 +19,22 @@ function LoginPage() {
   const { user, role, loading } = useAuth();
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotMsg, setForgotMsg] = useState("");
+  const [forgotErr, setForgotErr] = useState("");
+  const [forgotBusy, setForgotBusy] = useState(false);
+
+  async function onForgot(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setForgotErr(""); setForgotMsg(""); setForgotBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotBusy(false);
+    if (error) setForgotErr(error.message);
+    else setForgotMsg("Check je e-mail voor de herstel-link.");
+  }
 
   useEffect(() => {
     if (!loading && user && role) {
