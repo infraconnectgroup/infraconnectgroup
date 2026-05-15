@@ -8,7 +8,7 @@ export const Route = createFileRoute("/portaal/leden")({
   component: MembersPage,
 });
 
-type Profile = { id: string; full_name: string | null; company: string | null; avatar_url: string | null; bio: string | null };
+type Profile = { id: string; full_name: string | null; company_name: string | null; avatar_url: string | null; bio: string | null };
 
 function MembersPage() {
   const [items, setItems] = useState<Profile[]>([]);
@@ -16,7 +16,7 @@ function MembersPage() {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase.from("profiles").select("id,full_name,company,avatar_url,bio").order("full_name", { ascending: true });
+      const { data } = await supabase.from("profiles").select("id,full_name,company_name,avatar_url,bio").order("full_name", { ascending: true });
       setItems((data as Profile[]) ?? []);
     })();
   }, []);
@@ -26,7 +26,7 @@ function MembersPage() {
     if (!s) return items;
     return items.filter(p =>
       (p.full_name ?? "").toLowerCase().includes(s) ||
-      (p.company ?? "").toLowerCase().includes(s)
+      (p.company_name ?? "").toLowerCase().includes(s)
     );
   }, [items, q]);
 
@@ -58,7 +58,7 @@ function MembersPage() {
               )}
               <div className="min-w-0">
                 <div className="truncate font-semibold text-foreground">{p.full_name ?? "Onbekend"}</div>
-                <div className="truncate text-xs text-muted-foreground">{p.company ?? ""}</div>
+                <div className="truncate text-xs text-muted-foreground">{p.company_name ?? ""}</div>
               </div>
             </div>
             {p.bio && <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.bio}</p>}

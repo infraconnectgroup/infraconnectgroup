@@ -133,7 +133,13 @@ Deno.serve(async (req) => {
     // 5) Profiel — `service_role` heeft bij jullie geen GRANT op `profiles` (permission denied).
     //    Eerst service_role, dan zelfde JWT als admin-UI; blijft permission denied → niet blokkeren (trigger op
     //    auth.users of eerste portaal-login kan de rij alsnog vullen).
-    const profileRow = { id: userId, full_name: fullName || null };
+    const profileRow = {
+      id: userId,
+      full_name: fullName || null,
+      company_name: companyName || null,
+      phone: phone || null,
+      kvk_number: kvk || null,
+    };
     let pr = await admin.from("profiles").upsert(profileRow, { onConflict: "id" });
     if (pr.error && /permission denied/i.test(pr.error.message)) {
       console.warn("[accept-application] profile service_role:", pr.error.message);

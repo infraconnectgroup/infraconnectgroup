@@ -12,7 +12,7 @@ export const Route = createFileRoute("/portaal/profiel")({
 type Profile = {
   id: string;
   full_name: string | null;
-  company: string | null;
+  company_name: string | null;
   email: string | null;
   phone: string | null;
   bio: string | null;
@@ -30,7 +30,7 @@ function ProfilePage() {
     if (!user) return;
     void (async () => {
       const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      setP((data as Profile) ?? { id: user.id, full_name: "", company: "", email: user.email ?? "", phone: "", bio: "", avatar_url: null });
+      setP((data as Profile) ?? { id: user.id, full_name: "", company_name: "", email: user.email ?? "", phone: "", bio: "", avatar_url: null });
     })();
   }, [user]);
 
@@ -85,7 +85,7 @@ function ProfilePage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Volledige naam" value={p.full_name ?? ""} onChange={(v) => setP({ ...p, full_name: v })} />
-          <Field label="Bedrijf" value={p.company ?? ""} onChange={(v) => setP({ ...p, company: v })} />
+          <Field label="Bedrijf" value={p.company_name ?? ""} onChange={(v) => setP({ ...p, company_name: v })} />
           <Field label="E-mail" type="email" value={p.email ?? ""} onChange={(v) => setP({ ...p, email: v })} />
           <Field label="Telefoon" value={p.phone ?? ""} onChange={(v) => setP({ ...p, phone: v })} />
         </div>
