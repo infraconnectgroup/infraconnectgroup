@@ -178,16 +178,20 @@ Deno.serve(async (req) => {
     // 8) Generate password setup link + send branded onboarding email
     const SITE_URL = Deno.env.get("SITE_URL") ?? "https://businessclub-alislah.nl";
     const redirectTo = `${SITE_URL.replace(/\/$/, "")}/reset-password`;
+    // Recovery werkt voor bestaande auth-users (invite faalt zodra de user bestaat).
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-      type: "invite",
+      type: "recovery",
       email,
       options: { redirectTo },
     });
-    if (linkErr) console.error("generateLink error:", linkErr.message, "redirectTo:", redirectTo);
+    if (linkErr) console.error("generateLink recovery error:", linkErr.message, "redirectTo:", redirectTo);
 
     const actionLink =
       linkData?.properties?.action_link ??
       `${SITE_URL}/login`;
+    if (!linkData?.properties?.action_link) {
+      console.warn("[accept-application] geen action_link uit generateLink — fallback naar /login");
+    }
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     let emailSent = false;
