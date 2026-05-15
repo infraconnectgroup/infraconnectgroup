@@ -32,7 +32,7 @@ function ProfilePage() {
     if (!user) return;
     void (async () => {
       const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      setP((data as Profile) ?? { id: user.id, full_name: "", company_name: "", email: user.email ?? "", phone: "", bio: "", avatar_url: null });
+      setP((data as Profile) ?? { id: user.id, full_name: "", company_name: "", email: user.email ?? "", phone: "", bio: "", avatar_url: null, website: "" });
     })();
   }, [user]);
 
