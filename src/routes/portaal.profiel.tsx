@@ -90,6 +90,7 @@ function ProfilePage() {
           <Field label="Bedrijf" value={p.company_name ?? ""} onChange={(v) => setP({ ...p, company_name: v })} />
           <Field label="E-mail" type="email" value={user?.email ?? ""} readOnly />
           <Field label="Telefoon" value={p.phone ?? ""} onChange={(v) => setP({ ...p, phone: v })} />
+          <Field label="Website" value={p.website ?? ""} onChange={(v) => setP({ ...p, website: v })} placeholder="https://jouwbedrijf.nl" />
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-medium">Korte bio</label>
