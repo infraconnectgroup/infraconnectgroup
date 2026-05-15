@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Search } from "lucide-react";
+import { Mail, Phone, Search } from "lucide-react";
 
 export const Route = createFileRoute("/portaal/leden")({
   component: MembersPage,
 });
 
-type Profile = { id: string; full_name: string | null; company_name: string | null; avatar_url: string | null; bio: string | null };
+type Profile = { id: string; full_name: string | null; company_name: string | null; avatar_url: string | null; bio: string | null; phone: string | null; email: string | null };
 
 function MembersPage() {
   const [items, setItems] = useState<Profile[]>([]);
@@ -16,7 +16,7 @@ function MembersPage() {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase.from("profiles").select("id,full_name,company_name,avatar_url,bio").order("full_name", { ascending: true });
+      const { data } = await supabase.from("profiles").select("id,full_name,company_name,avatar_url,bio,phone,email").order("full_name", { ascending: true });
       setItems((data as Profile[]) ?? []);
     })();
   }, []);
