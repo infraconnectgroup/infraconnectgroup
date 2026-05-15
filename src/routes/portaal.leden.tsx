@@ -58,7 +58,7 @@ function MembersPage() {
               )}
               <div className="min-w-0">
                 <div className="truncate font-semibold text-foreground">{p.full_name ?? "Onbekend"}</div>
-                <div className="truncate text-xs text-muted-foreground">{p.company ?? ""}</div>
+                <div className="truncate text-xs text-muted-foreground">{p.company_name ?? ""}</div>
               </div>
             </div>
             {p.bio && <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.bio}</p>}
