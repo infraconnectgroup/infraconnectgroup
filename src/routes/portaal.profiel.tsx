@@ -12,7 +12,7 @@ export const Route = createFileRoute("/portaal/profiel")({
 type Profile = {
   id: string;
   full_name: string | null;
-  company: string | null;
+  company_name: string | null;
   email: string | null;
   phone: string | null;
   bio: string | null;
