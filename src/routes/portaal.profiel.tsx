@@ -18,6 +18,7 @@ type Profile = {
   phone: string | null;
   bio: string | null;
   avatar_url: string | null;
+  website: string | null;
 };
 
 function ProfilePage() {
