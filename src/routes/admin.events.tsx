@@ -19,10 +19,9 @@ type EventRow = {
 
 type Registration = {
   user_id: string;
-  created_at: string;
+  registered_at: string;
   full_name: string | null;
-  company: string | null;
-  email: string | null;
+  company_name: string | null;
 };
 
 function AdminEventsPage() {
@@ -222,29 +221,28 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
       setLoading(true);
       const { data: rows, error } = await supabase
         .from("event_registrations")
-        .select("user_id, created_at")
+        .select("user_id, registered_at")
         .eq("event_id", event.id)
-        .order("created_at", { ascending: true });
+        .order("registered_at", { ascending: true });
       if (error) console.error("[admin.events] registrations:", error);
-      const list = (rows as { user_id: string; created_at: string }[]) ?? [];
+      const list = (rows as { user_id: string; registered_at: string }[]) ?? [];
       const ids = Array.from(new Set(list.map((r) => r.user_id)));
-      let profilesById = new Map<string, { full_name: string | null; company: string | null; email: string | null }>();
+      let profilesById = new Map<string, { full_name: string | null; company_name: string | null }>();
       if (ids.length > 0) {
         const { data: profs, error: pErr } = await supabase
           .from("profiles")
-          .select("id, full_name, company, email")
+          .select("id, full_name, company_name")
           .in("id", ids);
         if (pErr) console.error("[admin.events] profiles:", pErr);
-        profilesById = new Map((profs ?? []).map((p: { id: string; full_name: string | null; company: string | null; email: string | null }) => [p.id, p]));
+        profilesById = new Map((profs ?? []).map((p: { id: string; full_name: string | null; company_name: string | null }) => [p.id, p]));
       }
       setRegs(list.map((r) => {
         const p = profilesById.get(r.user_id);
         return {
           user_id: r.user_id,
-          created_at: r.created_at,
+          registered_at: r.registered_at,
           full_name: p?.full_name ?? null,
-          company: p?.company ?? null,
-          email: p?.email ?? null,
+          company_name: p?.company_name ?? null,
         };
       }));
       setLoading(false);
@@ -271,10 +269,9 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
               <li key={r.user_id} className="flex items-start justify-between gap-4 p-3 text-sm">
                 <div className="min-w-0">
                   <div className="font-medium">{r.full_name ?? "—"}</div>
-                  {r.company && <div className="text-xs text-muted-foreground">{r.company}</div>}
-                  {r.email && <div className="text-xs text-muted-foreground break-all">{r.email}</div>}
+                  {r.company_name && <div className="text-xs text-muted-foreground">{r.company_name}</div>}
                 </div>
-                <div className="shrink-0 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("nl-NL")}</div>
+                <div className="shrink-0 text-xs text-muted-foreground">{new Date(r.registered_at).toLocaleDateString("nl-NL")}</div>
               </li>
             ))}
           </ul>
