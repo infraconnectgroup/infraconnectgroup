@@ -104,10 +104,11 @@ function AdminEventsPage() {
 }
 
 function Section({
-  title, items, onEdit, onDelete, onRegs, empty, muted,
+  title, items, counts, onEdit, onDelete, onRegs, empty, muted,
 }: {
   title: string;
   items: EventRow[];
+  counts: Record<string, number>;
   onEdit: (e: EventRow) => void;
   onDelete: (id: string) => void;
   onRegs: (e: EventRow) => void;
@@ -136,6 +137,7 @@ function Section({
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => onRegs(e)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
                     <Users size={14} /> Aanmeldingen
+                    <span className="ml-1 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">{counts[e.id] ?? 0}</span>
                   </button>
                   <button onClick={() => onEdit(e)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
                     <Pencil size={14} /> Bewerken
