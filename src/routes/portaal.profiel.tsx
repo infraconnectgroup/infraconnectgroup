@@ -3,6 +3,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { useEffect, useRef, useState, FormEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
+import { cn } from "@/lib/utils";
 import { Loader2, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/portaal/profiel")({
@@ -86,7 +87,7 @@ function ProfilePage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Volledige naam" value={p.full_name ?? ""} onChange={(v) => setP({ ...p, full_name: v })} />
           <Field label="Bedrijf" value={p.company_name ?? ""} onChange={(v) => setP({ ...p, company_name: v })} />
-          <Field label="E-mail" type="email" value={p.email ?? ""} onChange={(v) => setP({ ...p, email: v })} />
+          <Field label="E-mail" type="email" value={user?.email ?? ""} readOnly />
           <Field label="Telefoon" value={p.phone ?? ""} onChange={(v) => setP({ ...p, phone: v })} />
         </div>
         <div>
@@ -104,11 +105,11 @@ function ProfilePage() {
   );
 }
 
-function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Field({ label, value, onChange, type = "text", readOnly }: { label: string; value: string; onChange?: (v: string) => void; type?: string; readOnly?: boolean }) {
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+      <input type={type} value={value} readOnly={readOnly} onChange={(e) => onChange?.(e.target.value)} className={cn("w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20", readOnly && "bg-muted/50 cursor-not-allowed")} />
     </div>
   );
 }
