@@ -69,20 +69,18 @@ function LoginPage() {
             <label className="mb-1.5 block text-sm font-medium">E-mail</label>
             <input name="email" type="email" required className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </div>
-<div>
-  <label className="mb-1.5 block text-sm font-medium">Wachtwoord</label>
-  <input name="password" type="password" required className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-  <div className="mt-1.5 text-right">
-    <button
-      type="button"
-      onClick={() => { setShowForgot((v) => !v); setForgotMsg(""); setForgotErr(""); }}
-      className="text-xs text-muted-foreground hover:text-primary hover:underline"
-    >
-      Wachtwoord vergeten?
-    </button>
-  </div>
-</div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">Wachtwoord</label>
             <input name="password" type="password" required className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            <div className="mt-1.5 text-right">
+              <button
+                type="button"
+                onClick={() => { setShowForgot((v) => !v); setForgotMsg(""); setForgotErr(""); }}
+                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+              >
+                Wachtwoord vergeten?
+              </button>
+            </div>
           </div>
           {err && <p className="text-sm text-destructive">{err}</p>}
           <button disabled={busy} className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-[var(--primary-light)] disabled:opacity-60">
