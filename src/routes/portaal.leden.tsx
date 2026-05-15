@@ -8,7 +8,7 @@ export const Route = createFileRoute("/portaal/leden")({
   component: MembersPage,
 });
 
-type Profile = { id: string; full_name: string | null; company: string | null; avatar_url: string | null; bio: string | null };
+type Profile = { id: string; full_name: string | null; company_name: string | null; avatar_url: string | null; bio: string | null };
 
 function MembersPage() {
   const [items, setItems] = useState<Profile[]>([]);
