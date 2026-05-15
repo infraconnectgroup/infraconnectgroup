@@ -3,6 +3,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { useEffect, useRef, useState, FormEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/useAuth";
+import { cn } from "@/lib/utils";
 import { Loader2, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/portaal/profiel")({
