@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Search } from "lucide-react";
+import { Mail, Phone, Search } from "lucide-react";
 
 export const Route = createFileRoute("/portaal/leden")({
   component: MembersPage,
 });
 
-type Profile = { id: string; full_name: string | null; company_name: string | null; avatar_url: string | null; bio: string | null };
+type Profile = { id: string; full_name: string | null; company_name: string | null; avatar_url: string | null; bio: string | null; phone: string | null; email: string | null };
 
 function MembersPage() {
   const [items, setItems] = useState<Profile[]>([]);
@@ -16,8 +16,14 @@ function MembersPage() {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase.from("profiles").select("id,full_name,company_name,avatar_url,bio").order("full_name", { ascending: true });
-      setItems((data as Profile[]) ?? []);
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) return;
+      const res = await fetch("https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/list-members", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      setItems((json?.members as Profile[]) ?? []);
     })();
   }, []);
 
@@ -61,6 +67,20 @@ function MembersPage() {
                 <div className="truncate text-xs text-muted-foreground">{p.company_name ?? ""}</div>
               </div>
             </div>
+            {(p.email || p.phone) && (
+              <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                {p.email && (
+                  <a href={`mailto:${p.email}`} className="flex items-center gap-1.5 hover:text-primary">
+                    <Mail size={12} /> <span className="truncate">{p.email}</span>
+                  </a>
+                )}
+                {p.phone && (
+                  <a href={`tel:${p.phone}`} className="flex items-center gap-1.5 hover:text-primary">
+                    <Phone size={12} /> <span className="truncate">{p.phone}</span>
+                  </a>
+                )}
+              </div>
+            )}
             {p.bio && <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{p.bio}</p>}
           </div>
         ))}
