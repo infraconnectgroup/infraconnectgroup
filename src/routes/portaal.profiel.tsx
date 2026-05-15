@@ -104,11 +104,11 @@ function ProfilePage() {
   );
 }
 
-function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Field({ label, value, onChange, type = "text", readOnly }: { label: string; value: string; onChange?: (v: string) => void; type?: string; readOnly?: boolean }) {
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+      <input type={type} value={value} readOnly={readOnly} onChange={(e) => onChange?.(e.target.value)} className={cn("w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20", readOnly && "bg-muted/50 cursor-not-allowed")} />
     </div>
   );
 }
