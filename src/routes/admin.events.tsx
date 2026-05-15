@@ -219,12 +219,34 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase
+      setLoading(true);
+      const { data: rows, error } = await supabase
         .from("event_registrations")
-        .select("user_id, created_at, profiles(full_name, company)")
+        .select("user_id, created_at")
         .eq("event_id", event.id)
         .order("created_at", { ascending: true });
-      setRegs((data as unknown as Registration[]) ?? []);
+      if (error) console.error("[admin.events] registrations:", error);
+      const list = (rows as { user_id: string; created_at: string }[]) ?? [];
+      const ids = Array.from(new Set(list.map((r) => r.user_id)));
+      let profilesById = new Map<string, { full_name: string | null; company: string | null; email: string | null }>();
+      if (ids.length > 0) {
+        const { data: profs, error: pErr } = await supabase
+          .from("profiles")
+          .select("id, full_name, company, email")
+          .in("id", ids);
+        if (pErr) console.error("[admin.events] profiles:", pErr);
+        profilesById = new Map((profs ?? []).map((p: { id: string; full_name: string | null; company: string | null; email: string | null }) => [p.id, p]));
+      }
+      setRegs(list.map((r) => {
+        const p = profilesById.get(r.user_id);
+        return {
+          user_id: r.user_id,
+          created_at: r.created_at,
+          full_name: p?.full_name ?? null,
+          company: p?.company ?? null,
+          email: p?.email ?? null,
+        };
+      }));
       setLoading(false);
     })();
   }, [event.id]);
