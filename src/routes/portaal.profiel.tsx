@@ -85,7 +85,7 @@ function ProfilePage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Volledige naam" value={p.full_name ?? ""} onChange={(v) => setP({ ...p, full_name: v })} />
-          <Field label="Bedrijf" value={p.company ?? ""} onChange={(v) => setP({ ...p, company: v })} />
+          <Field label="Bedrijf" value={p.company_name ?? ""} onChange={(v) => setP({ ...p, company_name: v })} />
           <Field label="E-mail" type="email" value={p.email ?? ""} onChange={(v) => setP({ ...p, email: v })} />
           <Field label="Telefoon" value={p.phone ?? ""} onChange={(v) => setP({ ...p, phone: v })} />
         </div>
