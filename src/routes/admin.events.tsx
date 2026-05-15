@@ -86,8 +86,8 @@ function AdminEventsPage() {
         <div className="flex justify-center py-12 text-muted-foreground"><Loader2 className="animate-spin" /></div>
       ) : (
         <>
-          <Section title="Komende events" items={upcoming} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Nog geen komende events." />
-          <Section title="Geweest" items={past} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Geen eerdere events." muted />
+          <Section title="Komende events" items={upcoming} counts={counts} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Nog geen komende events." />
+          <Section title="Geweest" items={past} counts={counts} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Geen eerdere events." muted />
         </>
       )}
 
