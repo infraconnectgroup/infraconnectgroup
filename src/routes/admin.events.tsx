@@ -22,10 +22,12 @@ type Registration = {
   registered_at: string;
   full_name: string | null;
   company_name: string | null;
+  company: string | null;
 };
 
 function AdminEventsPage() {
   const [items, setItems] = useState<EventRow[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<EventRow | "new" | null>(null);
   const [viewRegs, setViewRegs] = useState<EventRow | null>(null);
@@ -36,7 +38,21 @@ function AdminEventsPage() {
       .from("events")
       .select("*")
       .order("event_date", { ascending: false });
-    setItems((data as EventRow[]) ?? []);
+    const events = (data as EventRow[]) ?? [];
+    setItems(events);
+    if (events.length > 0) {
+      const { data: regs } = await supabase
+        .from("event_registrations")
+        .select("event_id")
+        .in("event_id", events.map((e) => e.id));
+      const map: Record<string, number> = {};
+      ((regs as { event_id: string }[]) ?? []).forEach((r) => {
+        map[r.event_id] = (map[r.event_id] ?? 0) + 1;
+      });
+      setCounts(map);
+    } else {
+      setCounts({});
+    }
     setLoading(false);
   }
   useEffect(() => { void load(); }, []);
@@ -70,8 +86,8 @@ function AdminEventsPage() {
         <div className="flex justify-center py-12 text-muted-foreground"><Loader2 className="animate-spin" /></div>
       ) : (
         <>
-          <Section title="Komende events" items={upcoming} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Nog geen komende events." />
-          <Section title="Geweest" items={past} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Geen eerdere events." muted />
+          <Section title="Komende events" items={upcoming} counts={counts} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Nog geen komende events." />
+          <Section title="Geweest" items={past} counts={counts} onEdit={setEditing} onDelete={remove} onRegs={setViewRegs} empty="Geen eerdere events." muted />
         </>
       )}
 
@@ -88,10 +104,11 @@ function AdminEventsPage() {
 }
 
 function Section({
-  title, items, onEdit, onDelete, onRegs, empty, muted,
+  title, items, counts, onEdit, onDelete, onRegs, empty, muted,
 }: {
   title: string;
   items: EventRow[];
+  counts: Record<string, number>;
   onEdit: (e: EventRow) => void;
   onDelete: (id: string) => void;
   onRegs: (e: EventRow) => void;
@@ -120,6 +137,7 @@ function Section({
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => onRegs(e)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
                     <Users size={14} /> Aanmeldingen
+                    <span className="ml-1 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">{counts[e.id] ?? 0}</span>
                   </button>
                   <button onClick={() => onEdit(e)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary">
                     <Pencil size={14} /> Bewerken
@@ -227,14 +245,14 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
       if (error) console.error("[admin.events] registrations:", error);
       const list = (rows as { user_id: string; registered_at: string }[]) ?? [];
       const ids = Array.from(new Set(list.map((r) => r.user_id)));
-      let profilesById = new Map<string, { full_name: string | null; company_name: string | null }>();
+      let profilesById = new Map<string, { full_name: string | null; company_name: string | null; company: string | null }>();
       if (ids.length > 0) {
         const { data: profs, error: pErr } = await supabase
           .from("profiles")
-          .select("id, full_name, company_name")
+          .select("id, full_name, company_name, company")
           .in("id", ids);
         if (pErr) console.error("[admin.events] profiles:", pErr);
-        profilesById = new Map((profs ?? []).map((p: { id: string; full_name: string | null; company_name: string | null }) => [p.id, p]));
+        profilesById = new Map((profs ?? []).map((p: { id: string; full_name: string | null; company_name: string | null; company: string | null }) => [p.id, p]));
       }
       setRegs(list.map((r) => {
         const p = profilesById.get(r.user_id);
@@ -243,6 +261,7 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
           registered_at: r.registered_at,
           full_name: p?.full_name ?? null,
           company_name: p?.company_name ?? null,
+          company: p?.company ?? null,
         };
       }));
       setLoading(false);
@@ -269,7 +288,7 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
               <li key={r.user_id} className="flex items-start justify-between gap-4 p-3 text-sm">
                 <div className="min-w-0">
                   <div className="font-medium">{r.full_name ?? "—"}</div>
-                  {r.company_name && <div className="text-xs text-muted-foreground">{r.company_name}</div>}
+                  {(r.company_name ?? r.company) && <div className="text-xs text-muted-foreground">{r.company_name ?? r.company}</div>}
                 </div>
                 <div className="shrink-0 text-xs text-muted-foreground">{new Date(r.registered_at).toLocaleDateString("nl-NL")}</div>
               </li>
