@@ -27,6 +27,7 @@ type Registration = {
 
 function AdminEventsPage() {
   const [items, setItems] = useState<EventRow[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<EventRow | "new" | null>(null);
   const [viewRegs, setViewRegs] = useState<EventRow | null>(null);
@@ -37,7 +38,21 @@ function AdminEventsPage() {
       .from("events")
       .select("*")
       .order("event_date", { ascending: false });
-    setItems((data as EventRow[]) ?? []);
+    const events = (data as EventRow[]) ?? [];
+    setItems(events);
+    if (events.length > 0) {
+      const { data: regs } = await supabase
+        .from("event_registrations")
+        .select("event_id")
+        .in("event_id", events.map((e) => e.id));
+      const map: Record<string, number> = {};
+      ((regs as { event_id: string }[]) ?? []).forEach((r) => {
+        map[r.event_id] = (map[r.event_id] ?? 0) + 1;
+      });
+      setCounts(map);
+    } else {
+      setCounts({});
+    }
     setLoading(false);
   }
   useEffect(() => { void load(); }, []);
