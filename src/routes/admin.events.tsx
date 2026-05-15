@@ -268,12 +268,13 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
         ) : (
           <ul className="divide-y divide-border rounded-xl border border-border">
             {regs.map((r) => (
-              <li key={r.user_id} className="flex items-center justify-between p-3 text-sm">
-                <div>
-                  <div className="font-medium">{r.profiles?.full_name ?? "—"}</div>
-                  {r.profiles?.company && <div className="text-xs text-muted-foreground">{r.profiles.company}</div>}
+              <li key={r.user_id} className="flex items-start justify-between gap-4 p-3 text-sm">
+                <div className="min-w-0">
+                  <div className="font-medium">{r.full_name ?? "—"}</div>
+                  {r.company && <div className="text-xs text-muted-foreground">{r.company}</div>}
+                  {r.email && <div className="text-xs text-muted-foreground break-all">{r.email}</div>}
                 </div>
-                <div className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("nl-NL")}</div>
+                <div className="shrink-0 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("nl-NL")}</div>
               </li>
             ))}
           </ul>
