@@ -15,12 +15,12 @@ export const Route = createFileRoute("/lidmaatschap")({
 const tiers = [
   {
     id: "brons", name: "Brons", price: "€ 10.000", per: "/ jaar",
-    features: ["Toegang tot netwerkbijeenkomsten", "Online ledenoverzicht", "Bebording", "Logo op website"],
+    features: ["Toegang tot netwerkbijeenkomsten", "Online ledenoverzicht", "Logo op website"],
     highlight: false,
   },
   {
     id: "zilver", name: "Zilver", price: "€ 15.000", per: "/ jaar",
-    features: ["Alles uit Brons", "Toegang tot workshops & lezingen", "Quickscan"],
+    features: ["Alles uit Brons", "Toegang tot workshops & lezingen", "Islam compliance Quickscan"],
     highlight: true,
   },
   {
