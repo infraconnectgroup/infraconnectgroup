@@ -271,7 +271,7 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
               <li key={r.user_id} className="flex items-start justify-between gap-4 p-3 text-sm">
                 <div className="min-w-0">
                   <div className="font-medium">{r.full_name ?? "—"}</div>
-                  {r.company_name && <div className="text-xs text-muted-foreground">{r.company_name}</div>}
+                  {(r.company_name ?? r.company) && <div className="text-xs text-muted-foreground">{r.company_name ?? r.company}</div>}
                 </div>
                 <div className="shrink-0 text-xs text-muted-foreground">{new Date(r.registered_at).toLocaleDateString("nl-NL")}</div>
               </li>
