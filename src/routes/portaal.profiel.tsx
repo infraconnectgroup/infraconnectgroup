@@ -18,6 +18,7 @@ type Profile = {
   phone: string | null;
   bio: string | null;
   avatar_url: string | null;
+  website: string | null;
 };
 
 function ProfilePage() {
@@ -31,7 +32,7 @@ function ProfilePage() {
     if (!user) return;
     void (async () => {
       const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      setP((data as Profile) ?? { id: user.id, full_name: "", company_name: "", email: user.email ?? "", phone: "", bio: "", avatar_url: null });
+      setP((data as Profile) ?? { id: user.id, full_name: "", company_name: "", email: user.email ?? "", phone: "", bio: "", avatar_url: null, website: "" });
     })();
   }, [user]);
 
@@ -89,6 +90,7 @@ function ProfilePage() {
           <Field label="Bedrijf" value={p.company_name ?? ""} onChange={(v) => setP({ ...p, company_name: v })} />
           <Field label="E-mail" type="email" value={user?.email ?? ""} readOnly />
           <Field label="Telefoon" value={p.phone ?? ""} onChange={(v) => setP({ ...p, phone: v })} />
+          <Field label="Website" value={p.website ?? ""} onChange={(v) => setP({ ...p, website: v })} placeholder="https://jouwbedrijf.nl" />
         </div>
         <div>
           <label className="mb-1.5 block text-sm font-medium">Korte bio</label>
@@ -105,11 +107,11 @@ function ProfilePage() {
   );
 }
 
-function Field({ label, value, onChange, type = "text", readOnly }: { label: string; value: string; onChange?: (v: string) => void; type?: string; readOnly?: boolean }) {
+function Field({ label, value, onChange, type = "text", readOnly, placeholder }: { label: string; value: string; onChange?: (v: string) => void; type?: string; readOnly?: boolean; placeholder?: string }) {
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>
-      <input type={type} value={value} readOnly={readOnly} onChange={(e) => onChange?.(e.target.value)} className={cn("w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20", readOnly && "bg-muted/50 cursor-not-allowed")} />
+      <input type={type} value={value} readOnly={readOnly} placeholder={placeholder} onChange={(e) => onChange?.(e.target.value)} className={cn("w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20", readOnly && "bg-muted/50 cursor-not-allowed")} />
     </div>
   );
 }
