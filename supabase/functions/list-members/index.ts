@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
 
     const { data: profiles, error: pErr } = await admin
       .from("profiles")
-      .select("id,full_name,company_name,avatar_url,bio,phone")
+      .select("id,full_name,company_name,avatar_url,bio,phone,website")
       .order("full_name", { ascending: true });
     if (pErr) return json({ error: pErr.message }, 500);
 
