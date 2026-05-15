@@ -26,7 +26,7 @@ function MembersPage() {
     if (!s) return items;
     return items.filter(p =>
       (p.full_name ?? "").toLowerCase().includes(s) ||
-      (p.company ?? "").toLowerCase().includes(s)
+      (p.company_name ?? "").toLowerCase().includes(s)
     );
   }, [items, q]);
 
