@@ -16,7 +16,7 @@ function MembersPage() {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase.from("profiles").select("id,full_name,company,avatar_url,bio").order("full_name", { ascending: true });
+      const { data } = await supabase.from("profiles").select("id,full_name,company_name,avatar_url,bio").order("full_name", { ascending: true });
       setItems((data as Profile[]) ?? []);
     })();
   }, []);
