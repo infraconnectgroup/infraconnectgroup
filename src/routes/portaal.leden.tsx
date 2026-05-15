@@ -16,8 +16,14 @@ function MembersPage() {
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase.from("profiles").select("id,full_name,company_name,avatar_url,bio,phone,email").order("full_name", { ascending: true });
-      setItems((data as Profile[]) ?? []);
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) return;
+      const res = await fetch("https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/list-members", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json().catch(() => ({}));
+      setItems((json?.members as Profile[]) ?? []);
     })();
   }, []);
 
