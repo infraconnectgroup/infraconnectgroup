@@ -228,14 +228,14 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
       if (error) console.error("[admin.events] registrations:", error);
       const list = (rows as { user_id: string; registered_at: string }[]) ?? [];
       const ids = Array.from(new Set(list.map((r) => r.user_id)));
-      let profilesById = new Map<string, { full_name: string | null; company_name: string | null }>();
+      let profilesById = new Map<string, { full_name: string | null; company_name: string | null; company: string | null }>();
       if (ids.length > 0) {
         const { data: profs, error: pErr } = await supabase
           .from("profiles")
-          .select("id, full_name, company_name")
+          .select("id, full_name, company_name, company")
           .in("id", ids);
         if (pErr) console.error("[admin.events] profiles:", pErr);
-        profilesById = new Map((profs ?? []).map((p: { id: string; full_name: string | null; company_name: string | null }) => [p.id, p]));
+        profilesById = new Map((profs ?? []).map((p: { id: string; full_name: string | null; company_name: string | null; company: string | null }) => [p.id, p]));
       }
       setRegs(list.map((r) => {
         const p = profilesById.get(r.user_id);
@@ -244,6 +244,7 @@ function RegistrationsDialog({ event, onClose }: { event: EventRow; onClose: () 
           registered_at: r.registered_at,
           full_name: p?.full_name ?? null,
           company_name: p?.company_name ?? null,
+          company: p?.company ?? null,
         };
       }));
       setLoading(false);
