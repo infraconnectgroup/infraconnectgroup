@@ -22,6 +22,7 @@ type Registration = {
   registered_at: string;
   full_name: string | null;
   company_name: string | null;
+  company: string | null;
 };
 
 function AdminEventsPage() {
