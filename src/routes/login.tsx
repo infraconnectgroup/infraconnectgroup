@@ -76,7 +76,7 @@ function LoginPage() {
               <button
                 type="button"
                 onClick={() => { setShowForgot((v) => !v); setForgotMsg(""); setForgotErr(""); }}
-                className="text-xs text-muted-foreground hover:text-primary hover:underline"
+                className="text-xs text-primary hover:underline"
               >
                 Wachtwoord vergeten?
               </button>
