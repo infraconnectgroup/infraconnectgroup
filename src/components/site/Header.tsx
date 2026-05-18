@@ -73,14 +73,22 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="p-2 text-foreground md:hidden"
-          onClick={() => setOpen(!open)}
-          aria-label="Menu"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile actions */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-secondary"
+          >
+            <Lock size={16} /> Inloggen
+          </Link>
+          <button
+            className="p-2 text-foreground"
+            onClick={() => setOpen(!open)}
+            aria-label="Menu"
+          >
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -98,24 +106,13 @@ export function Header() {
               </Link>
             ))}
 
-            <div className="mt-3 flex items-center gap-3">
-              <Link
-                to="/aanmelden"
-                onClick={() => setOpen(false)}
-                className="flex-1 rounded-md bg-accent px-3 py-2.5 text-center text-sm font-semibold text-accent-foreground"
-              >
-                Word lid
-              </Link>
-
-              <Link
-                to="/login"
-                onClick={() => setOpen(false)}
-                className="rounded-md p-2 text-foreground/60 transition-colors hover:bg-secondary hover:text-primary"
-                title="Inloggen"
-              >
-                <Lock size={18} />
-              </Link>
-            </div>
+            <Link
+              to="/aanmelden"
+              onClick={() => setOpen(false)}
+              className="mt-3 rounded-md bg-accent px-3 py-2.5 text-center text-sm font-semibold text-accent-foreground"
+            >
+              Word lid
+            </Link>
           </div>
         </div>
       )}
