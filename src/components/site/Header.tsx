@@ -26,7 +26,7 @@ export function Header() {
           <img
             src={logo}
             alt="Al Islah logo"
-            className="h-12 w-12 object-contain"
+            className="h-16 w-16 object-contain"
           />
 
           <div className="flex flex-col leading-tight">
