@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-3">
-              <img src={logo} alt="" className="h-10 w-10" />
+              <img src={logo} alt="" className="h-16 w-16" />
               <div className="leading-tight">
                 <div className="font-display font-bold text-primary">Businessclub</div>
                 <div className="text-sm font-semibold text-accent">AL ISLAH</div>
