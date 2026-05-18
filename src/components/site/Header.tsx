@@ -73,14 +73,22 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          className="p-2 text-foreground md:hidden"
-          onClick={() => setOpen(!open)}
-          aria-label="Menu"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile actions */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-secondary"
+          >
+            <Lock size={16} /> Inloggen
+          </Link>
+          <button
+            className="p-2 text-foreground"
+            onClick={() => setOpen(!open)}
+            aria-label="Menu"
+          >
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
