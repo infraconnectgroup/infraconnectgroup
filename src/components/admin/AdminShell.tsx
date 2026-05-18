@@ -31,7 +31,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <span className="font-display font-bold text-primary">Admin</span>
             </div>
           </Link>
-          <nav className="hidden items-center gap-1 sm:flex">
+          <nav className="flex items-center gap-1">
             <Link to="/admin" activeOptions={{ exact: true }} activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
               <Inbox size={14} /> Aanmeldingen
             </Link>
