@@ -26,7 +26,7 @@ export function Header() {
           <img
             src={logo}
             alt="Al Islah logo"
-            className="h-20 w-20 object-contain"
+            className="h-12 w-12 object-contain"
           />
 
           <div className="flex flex-col leading-tight">
@@ -59,10 +59,9 @@ export function Header() {
         <div className="hidden items-center gap-4 md:flex">
           <Link
             to="/login"
-            className="rounded-md p-2 text-foreground/60 transition-colors hover:bg-secondary hover:text-primary"
-            title="Inloggen"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-secondary"
           >
-            <Lock size={18} />
+            <Lock size={16} /> Inloggen
           </Link>
 
           <Link
@@ -77,9 +76,9 @@ export function Header() {
         <div className="flex items-center gap-2 md:hidden">
           <Link
             to="/login"
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-secondary"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-secondary"
           >
-            <Lock size={16} /> Inloggen
+            <Lock size={14} /> Inloggen
           </Link>
           <button
             className="p-2 text-foreground"
