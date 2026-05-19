@@ -50,42 +50,73 @@ function AgendaPage() {
       <h1 className="font-display text-3xl font-bold">Agenda</h1>
       <p className="mt-1 text-sm text-muted-foreground">Bijeenkomsten en evenementen voor leden.</p>
 
-      <div className="mt-6 space-y-3">
-        {loading ? (
-          <div className="flex justify-center py-12 text-muted-foreground"><Loader2 className="animate-spin" /></div>
-        ) : events.length === 0 ? (
+      {loading ? (
+        <div className="mt-6 flex justify-center py-12 text-muted-foreground"><Loader2 className="animate-spin" /></div>
+      ) : events.length === 0 ? (
+        <div className="mt-6">
           <p className="rounded-xl border border-dashed border-border bg-background p-10 text-center text-sm text-muted-foreground">Geen events.</p>
-        ) : events.map((e) => {
-          const isReg = registered.has(e.id);
-          const past = new Date(e.event_date) < new Date();
-          return (
-            <div key={e.id} className="flex flex-col gap-4 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
-                  <Calendar size={12} />
-                  {new Date(e.event_date).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}
-                </div>
-                <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
-                {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}
-                {e.description && <p className="mt-2 text-sm text-muted-foreground">{e.description}</p>}
-              </div>
-              <div>
-                {past ? (
-                  <span className="rounded-md bg-secondary px-3 py-2 text-xs font-medium text-muted-foreground">Geweest</span>
-                ) : isReg ? (
-                  <button disabled={busyId === e.id} onClick={() => unregister(e.id)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-secondary">
-                    <Check size={14} /> Aangemeld
-                  </button>
-                ) : (
-                  <button disabled={busyId === e.id} onClick={() => register(e.id)} className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-[var(--accent-light)] disabled:opacity-60">
-                    {busyId === e.id ? "…" : "Aanmelden"}
-                  </button>
+        </div>
+      ) : (
+        <div className="mt-6 space-y-3">
+          {(() => {
+            const now = new Date();
+            const upcoming = events.filter((e) => new Date(e.event_date) >= now);
+            const past = events.filter((e) => new Date(e.event_date) < now).sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
+            return (
+              <>
+                {upcoming.map((e) => {
+                  const isReg = registered.has(e.id);
+                  return (
+                    <div key={e.id} className="flex flex-col gap-4 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
+                          <Calendar size={12} />
+                          {new Date(e.event_date).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}
+                        </div>
+                        <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
+                        {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}
+                        {e.description && <p className="mt-2 text-sm text-muted-foreground">{e.description}</p>}
+                      </div>
+                      <div>
+                        {isReg ? (
+                          <button disabled={busyId === e.id} onClick={() => unregister(e.id)} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-secondary">
+                            <Check size={14} /> Aangemeld
+                          </button>
+                        ) : (
+                          <button disabled={busyId === e.id} onClick={() => register(e.id)} className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-[var(--accent-light)] disabled:opacity-60">
+                            {busyId === e.id ? "…" : "Aanmelden"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {past.length > 0 && (
+                  <>
+                    <h2 className="mb-3 mt-8 font-display text-xl font-bold">Geweest</h2>
+                    {past.map((e) => (
+                      <div key={e.id} className="flex flex-col gap-4 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
+                            <Calendar size={12} />
+                            {new Date(e.event_date).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}
+                          </div>
+                          <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
+                          {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}
+                          {e.description && <p className="mt-2 text-sm text-muted-foreground">{e.description}</p>}
+                        </div>
+                        <div>
+                          <span className="rounded-md bg-secondary px-3 py-2 text-xs font-medium text-muted-foreground">Geweest</span>
+                        </div>
+                      </div>
+                    ))}
+                  </>
                 )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
     </PortalShell>
   );
 }
