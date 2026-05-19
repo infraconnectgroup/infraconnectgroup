@@ -97,7 +97,7 @@ function HomePage() {
               { icon: TrendingUp, title: "Groei & kennis", text: "Workshops, sprekers en mentortrajecten om jouw business naar het volgende niveau te tillen." },
               { icon: Heart, title: "Sadaqah Jariyah", text: "Een deel van de lidmaatschapsbijdrage ondersteunt het kennisinstituut, een investering met blijvende impact." },              
             ].map(({ icon: Icon, title, text }) => (
-              <div key={title} className="group rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-card)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]">
+              <div key={title} className="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]">
                 <div className="mb-4 inline-flex rounded-xl bg-gradient-to-br from-primary to-[var(--primary-light)] p-3 text-primary-foreground">
                   <Icon size={24} />
                 </div>
