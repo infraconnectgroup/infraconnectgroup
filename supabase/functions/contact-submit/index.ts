@@ -171,8 +171,8 @@ function renderContactEmail(d: ContactEmailData): string {
           <!-- Logo header -->
           <tr>
             <td align="center" style="padding:8px 0 24px 0;">
-              <img src="${escapeHtml(logoUrl)}" width="120" height="120" alt="Businessclub Al Islah"
-                style="display:block;border:0;outline:none;text-decoration:none;width:120px;height:120px;border-radius:12px;" />
+              <img src="${escapeHtml(logoUrl)}" width="100" height="100" alt="Businessclub Al Islah"
+                style="display:block;border:0;outline:none;text-decoration:none;width:100px;height:100px;border-radius:12px;" />
               <div style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:${primary};margin-top:12px;font-weight:700;letter-spacing:0.3px;">
                 Businessclub Al Islah
               </div>

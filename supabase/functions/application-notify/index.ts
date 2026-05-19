@@ -177,8 +177,8 @@ function renderEmail(d: {
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
           <tr>
             <td align="center" style="padding:8px 0 24px 0;">
-              <img src="${e(logoUrl)}" width="64" height="64" alt="Businessclub Al Islah"
-                style="display:block;border:0;outline:none;text-decoration:none;width:64px;height:64px;border-radius:12px;" />
+              <img src="${e(logoUrl)}" width="100" height="100" alt="Businessclub Al Islah"
+                style="display:block;border:0;outline:none;text-decoration:none;width:100px;height:100px;border-radius:12px;" />
               <div style="font-family:Georgia,'Times New Roman',serif;font-size:18px;color:${primary};margin-top:12px;font-weight:700;letter-spacing:0.3px;">
                 Businessclub Al Islah
               </div>
