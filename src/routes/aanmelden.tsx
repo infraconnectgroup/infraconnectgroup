@@ -65,6 +65,19 @@ function ApplyPage() {
       setStatus("error");
       return;
     }
+    // Fire-and-forget admin-notificatie. Faalt deze, dan blokkeert dit de succesflow niet.
+    supabase.functions.invoke("application-notify", {
+      body: {
+        company_name,
+        full_name,
+        email,
+        phone,
+        kvk_number,
+        membership_tier,
+        motivation,
+        created_at: new Date().toISOString(),
+      },
+    }).catch((err) => console.error("[application-notify] invoke failed:", err));
     setStatus("success");
   }
 
