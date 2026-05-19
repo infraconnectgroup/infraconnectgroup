@@ -64,6 +64,9 @@ function AgendaPage() {
             const past = events.filter((e) => new Date(e.event_date) < now).sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
             return (
               <>
+                {upcoming.length > 0 && (
+                  <h2 className="mb-3 font-display text-xl font-bold">Aankomende evenementen</h2>
+                )}
                 {upcoming.map((e) => {
                   const isReg = registered.has(e.id);
                   return (
