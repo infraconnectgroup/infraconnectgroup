@@ -90,12 +90,12 @@ function HomePage() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {[
               { icon: Users, title: "Krachtig netwerk", text: "Ontmoet ondernemers uit diverse sectoren en bouw waardevolle relaties op." },
               { icon: Handshake, title: "Vertrouwde samenwerking", text: "Werk samen met partners die dezelfde waarden en normen delen." },
               { icon: TrendingUp, title: "Groei & kennis", text: "Workshops, sprekers en mentortrajecten om jouw business naar het volgende niveau te tillen." },
-              { icon: Heart, title: "Sadaqah Jariyah", text: "Een deel van de lidmaatschapsbijdrage vloeit rechtstreeks naar het kennisinstituut, een investering met blijvende impact." },              
+              { icon: Heart, title: "Sadaqah Jariyah", text: "Een deel van de lidmaatschapsbijdrage ondersteunt het kennisinstituut, een investering met blijvende impact." },              
             ].map(({ icon: Icon, title, text }) => (
               <div key={title} className="group rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-card)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-soft)]">
                 <div className="mb-4 inline-flex rounded-xl bg-gradient-to-br from-primary to-[var(--primary-light)] p-3 text-primary-foreground">
