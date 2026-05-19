@@ -1,3 +1,6 @@
 # https://supabase.com/docs/guides/functions/function-configuration
 [functions.contact-submit]
 verify_jwt = false
+
+[functions.application-notify]
+verify_jwt = false
