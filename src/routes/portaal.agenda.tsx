@@ -95,7 +95,7 @@ function AgendaPage() {
                   <>
                     <h2 className="mb-3 mt-8 font-display text-xl font-bold">Geweest</h2>
                     {past.map((e) => (
-                      <div key={e.id} className="flex flex-col gap-4 rounded-xl border border-border bg-background p-5 opacity-75 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
+                      <div key={e.id} className="flex flex-col gap-4 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
                             <Calendar size={12} />
