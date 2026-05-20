@@ -22,8 +22,10 @@ import { Route as PortaalIndexRouteImport } from './routes/portaal.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PortaalProfielRouteImport } from './routes/portaal.profiel'
 import { Route as PortaalLedenRouteImport } from './routes/portaal.leden'
+import { Route as PortaalDocumentenRouteImport } from './routes/portaal.documenten'
 import { Route as PortaalAgendaRouteImport } from './routes/portaal.agenda'
 import { Route as AdminEventsRouteImport } from './routes/admin.events'
+import { Route as AdminDocumentenRouteImport } from './routes/admin.documenten'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -90,6 +92,11 @@ const PortaalLedenRoute = PortaalLedenRouteImport.update({
   path: '/portaal/leden',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortaalDocumentenRoute = PortaalDocumentenRouteImport.update({
+  id: '/portaal/documenten',
+  path: '/portaal/documenten',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortaalAgendaRoute = PortaalAgendaRouteImport.update({
   id: '/portaal/agenda',
   path: '/portaal/agenda',
@@ -98,6 +105,11 @@ const PortaalAgendaRoute = PortaalAgendaRouteImport.update({
 const AdminEventsRoute = AdminEventsRouteImport.update({
   id: '/admin/events',
   path: '/admin/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDocumentenRoute = AdminDocumentenRouteImport.update({
+  id: '/admin/documenten',
+  path: '/admin/documenten',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -111,8 +123,10 @@ export interface FileRoutesByFullPath {
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin/documenten': typeof AdminDocumentenRoute
   '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
+  '/portaal/documenten': typeof PortaalDocumentenRoute
   '/portaal/leden': typeof PortaalLedenRoute
   '/portaal/profiel': typeof PortaalProfielRoute
   '/admin/': typeof AdminIndexRoute
@@ -128,8 +142,10 @@ export interface FileRoutesByTo {
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin/documenten': typeof AdminDocumentenRoute
   '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
+  '/portaal/documenten': typeof PortaalDocumentenRoute
   '/portaal/leden': typeof PortaalLedenRoute
   '/portaal/profiel': typeof PortaalProfielRoute
   '/admin': typeof AdminIndexRoute
@@ -146,8 +162,10 @@ export interface FileRoutesById {
   '/over-ons': typeof OverOnsRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin/documenten': typeof AdminDocumentenRoute
   '/admin/events': typeof AdminEventsRoute
   '/portaal/agenda': typeof PortaalAgendaRoute
+  '/portaal/documenten': typeof PortaalDocumentenRoute
   '/portaal/leden': typeof PortaalLedenRoute
   '/portaal/profiel': typeof PortaalProfielRoute
   '/admin/': typeof AdminIndexRoute
@@ -165,8 +183,10 @@ export interface FileRouteTypes {
     | '/over-ons'
     | '/privacy'
     | '/reset-password'
+    | '/admin/documenten'
     | '/admin/events'
     | '/portaal/agenda'
+    | '/portaal/documenten'
     | '/portaal/leden'
     | '/portaal/profiel'
     | '/admin/'
@@ -182,8 +202,10 @@ export interface FileRouteTypes {
     | '/over-ons'
     | '/privacy'
     | '/reset-password'
+    | '/admin/documenten'
     | '/admin/events'
     | '/portaal/agenda'
+    | '/portaal/documenten'
     | '/portaal/leden'
     | '/portaal/profiel'
     | '/admin'
@@ -199,8 +221,10 @@ export interface FileRouteTypes {
     | '/over-ons'
     | '/privacy'
     | '/reset-password'
+    | '/admin/documenten'
     | '/admin/events'
     | '/portaal/agenda'
+    | '/portaal/documenten'
     | '/portaal/leden'
     | '/portaal/profiel'
     | '/admin/'
@@ -217,8 +241,10 @@ export interface RootRouteChildren {
   OverOnsRoute: typeof OverOnsRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  AdminDocumentenRoute: typeof AdminDocumentenRoute
   AdminEventsRoute: typeof AdminEventsRoute
   PortaalAgendaRoute: typeof PortaalAgendaRoute
+  PortaalDocumentenRoute: typeof PortaalDocumentenRoute
   PortaalLedenRoute: typeof PortaalLedenRoute
   PortaalProfielRoute: typeof PortaalProfielRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -318,6 +344,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortaalLedenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portaal/documenten': {
+      id: '/portaal/documenten'
+      path: '/portaal/documenten'
+      fullPath: '/portaal/documenten'
+      preLoaderRoute: typeof PortaalDocumentenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portaal/agenda': {
       id: '/portaal/agenda'
       path: '/portaal/agenda'
@@ -330,6 +363,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/events'
       fullPath: '/admin/events'
       preLoaderRoute: typeof AdminEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/documenten': {
+      id: '/admin/documenten'
+      path: '/admin/documenten'
+      fullPath: '/admin/documenten'
+      preLoaderRoute: typeof AdminDocumentenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -345,8 +385,10 @@ const rootRouteChildren: RootRouteChildren = {
   OverOnsRoute: OverOnsRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  AdminDocumentenRoute: AdminDocumentenRoute,
   AdminEventsRoute: AdminEventsRoute,
   PortaalAgendaRoute: PortaalAgendaRoute,
+  PortaalDocumentenRoute: PortaalDocumentenRoute,
   PortaalLedenRoute: PortaalLedenRoute,
   PortaalProfielRoute: PortaalProfielRoute,
   AdminIndexRoute: AdminIndexRoute,

@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/useAuth";
-import { LogOut, LayoutDashboard, Calendar, Users, User } from "lucide-react";
+import { LogOut, LayoutDashboard, Calendar, Users, User, FileText } from "lucide-react";
 import logo from "@/assets/logo-alislah.png";
 
 const nav = [
@@ -9,6 +9,7 @@ const nav = [
   { to: "/portaal/agenda", label: "Agenda", icon: Calendar, exact: false },
   { to: "/portaal/leden", label: "Leden", icon: Users, exact: false },
   { to: "/portaal/profiel", label: "Mijn profiel", icon: User, exact: false },
+  { to: "/portaal/documenten", label: "Documenten", icon: FileText, exact: false },
 ] as const;
 
 export function PortalShell({ children }: { children: ReactNode }) {
@@ -64,7 +65,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="sticky bottom-0 z-30 grid grid-cols-4 border-t border-border bg-background md:hidden">
+      <nav className="sticky bottom-0 z-30 grid grid-cols-5 border-t border-border bg-background md:hidden">
         {nav.map((n) => (
           <Link key={n.to} to={n.to} activeOptions={{ exact: n.exact }} activeProps={{ className: "text-primary" }} className="flex flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground">
             <n.icon size={18} /> {n.label}
