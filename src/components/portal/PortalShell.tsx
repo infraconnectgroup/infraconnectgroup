@@ -29,7 +29,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-secondary/30">
       <header className="border-b border-border bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link to="/portaal" className="flex items-center gap-3">
             <img src={logo} alt="" className="h-9 w-9" />
             <span className="font-display font-bold text-primary">Ledenportaal</span>
