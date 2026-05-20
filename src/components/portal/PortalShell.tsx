@@ -27,9 +27,9 @@ export function PortalShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-secondary/30 max-w-[100vw] overflow-x-hidden">
+    <div className="flex min-h-screen flex-col bg-secondary/30">
       <header className="border-b border-border bg-background">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link to="/portaal" className="flex items-center gap-3">
             <img src={logo} alt="" className="h-9 w-9" />
             <span className="font-display font-bold text-primary">Ledenportaal</span>
@@ -65,9 +65,9 @@ export function PortalShell({ children }: { children: ReactNode }) {
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="sticky bottom-0 z-30 grid grid-cols-5 border-t border-border bg-background md:hidden w-full overflow-hidden">
+      <nav className="sticky bottom-0 z-30 grid grid-cols-5 border-t border-border bg-background md:hidden">
         {nav.map((n) => (
-          <Link key={n.to} to={n.to} activeOptions={{ exact: n.exact }} activeProps={{ className: "text-primary" }} className="flex flex-col items-center justify-center gap-1 py-2 text-[9px] font-medium text-muted-foreground min-w-0 overflow-hidden">
+          <Link key={n.to} to={n.to} activeOptions={{ exact: n.exact }} activeProps={{ className: "text-primary" }} className="flex flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium text-muted-foreground">
             <n.icon size={18} /> {n.label}
           </Link>
         ))}
