@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/useAuth";
 import { useEffect } from "react";
-import { LogOut, ShieldCheck, Inbox, CalendarDays } from "lucide-react";
+import { LogOut, ShieldCheck, Inbox, CalendarDays, FileText } from "lucide-react";
 import logo from "@/assets/logo-alislah.png";
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -38,12 +38,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </button>
             </div>
           </div>
-          <nav className="-mx-4 flex items-center justify-center gap-1 border-t border-border px-4 py-2 sm:mx-0 sm:border-t-0 sm:px-0 sm:py-0">
-            <Link to="/admin" activeOptions={{ exact: true }} activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
+          <nav className="-mx-4 flex items-center justify-start gap-1 overflow-x-auto border-t border-border px-4 py-2 sm:mx-0 sm:justify-center sm:overflow-visible sm:border-t-0 sm:px-0 sm:py-0">
+            <Link to="/admin" activeOptions={{ exact: true }} activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
               <Inbox size={14} /> Aanmeldingen
             </Link>
-            <Link to="/admin/events" activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
+            <Link to="/admin/events" activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
               <CalendarDays size={14} /> Events
+            </Link>
+            <Link to="/admin/documenten" activeProps={{ className: "bg-primary/10 text-primary" }} className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-secondary">
+              <FileText size={14} /> Documenten
             </Link>
           </nav>
           <div className="hidden items-center gap-4 sm:flex">
