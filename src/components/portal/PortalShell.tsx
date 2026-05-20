@@ -8,8 +8,8 @@ const nav = [
   { to: "/portaal", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/portaal/agenda", label: "Agenda", icon: Calendar, exact: false },
   { to: "/portaal/leden", label: "Leden", icon: Users, exact: false },
-  { to: "/portaal/documenten", label: "Documenten", icon: FileText, exact: false },  
-  { to: "/portaal/profiel", label: "Mijn profiel", icon: User, exact: false },
+  { to: "/portaal/documenten", label: "Document", icon: FileText, exact: false },  
+  { to: "/portaal/profiel", label: "Profiel", icon: User, exact: false },
 ] as const;
 
 export function PortalShell({ children }: { children: ReactNode }) {
