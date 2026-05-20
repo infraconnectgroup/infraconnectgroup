@@ -65,10 +65,16 @@ function PortalDocumentenPage() {
   async function view(doc: DocumentRow) {
     const { data, error } = await supabase.storage
       .from("documents")
-      .createSignedUrl(doc.storage_path, 60);
+      .createSignedUrl(
+        doc.storage_path,
+        5 // korte geldigheid voor bekijken
+      );
 
     if (error || !data?.signedUrl) {
-      alert("Openen mislukt: " + (error?.message ?? "onbekende fout"));
+      alert(
+        "Openen mislukt: " +
+          (error?.message ?? "onbekende fout")
+      );
       return;
     }
 
@@ -81,18 +87,23 @@ function PortalDocumentenPage() {
       .createSignedUrl(
         doc.storage_path,
         60,
-        { download: doc.file_name }
+        {
+          download: doc.file_name,
+        }
       );
 
     if (error || !data?.signedUrl) {
       alert(
         "Download mislukt: " +
-        (error?.message ?? "onbekende fout")
+          (error?.message ?? "onbekende fout")
       );
       return;
     }
 
-    window.open(data.signedUrl, "_blank");
+    window.open(
+      data.signedUrl,
+      "_blank"
+    );
   }
 
   return (
@@ -183,12 +194,11 @@ function DocSection({
           {items.map((d) => (
             <div
               key={d.id}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)]"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
                   <FileText size={12} />
-
                   {new Date(
                     d.created_at
                   ).toLocaleDateString(
@@ -211,7 +221,6 @@ function DocSection({
 
                 <p className="mt-2 truncate text-xs text-muted-foreground">
                   {d.file_name}
-
                   {d.size_bytes
                     ? ` • ${formatSize(
                         d.size_bytes
@@ -220,10 +229,19 @@ function DocSection({
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex gap-2">
                 <button
                   onClick={() => onView(d)}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-secondary"
+                  className="
+                    inline-flex flex-1
+                    items-center justify-center
+                    gap-1.5 rounded-md
+                    border border-border
+                    bg-background
+                    px-4 py-2
+                    text-sm font-semibold
+                    hover:bg-secondary
+                  "
                 >
                   <FileText size={14} />
                   Bekijken
@@ -231,7 +249,16 @@ function DocSection({
 
                 <button
                   onClick={() => onDownload(d)}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-[var(--accent-light)]"
+                  className="
+                    inline-flex flex-1
+                    items-center justify-center
+                    gap-1.5 rounded-md
+                    bg-accent
+                    px-4 py-2
+                    text-sm font-semibold
+                    text-accent-foreground
+                    hover:bg-[var(--accent-light)]
+                  "
                 >
                   <Download size={14} />
                   Downloaden
