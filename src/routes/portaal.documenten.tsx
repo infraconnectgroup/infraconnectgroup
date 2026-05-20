@@ -113,7 +113,7 @@ function PortalDocumentenPage() {
       </h1>
 
       <p className="mt-1 text-sm text-muted-foreground">
-        Bekijk je persoonlijke documenten en algemene documenten voor leden.
+        Bekijk je documenten.
       </p>
 
       {loading ? (
@@ -194,7 +194,7 @@ function DocSection({
           {items.map((d) => (
             <div
               key={d.id}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)]"
+              className="flex flex-col gap-3 rounded-xl border border-border bg-background p-5 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
@@ -233,7 +233,7 @@ function DocSection({
                 <button
                   onClick={() => onView(d)}
                   className="
-                    inline-flex flex-1
+                    inline-flex flex-1 sm:flex-none
                     items-center justify-center
                     gap-1.5 rounded-md
                     border border-border
@@ -250,7 +250,7 @@ function DocSection({
                 <button
                   onClick={() => onDownload(d)}
                   className="
-                    inline-flex flex-1
+                    inline-flex flex-1 sm:flex-none
                     items-center justify-center
                     gap-1.5 rounded-md
                     bg-accent
