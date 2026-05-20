@@ -31,7 +31,7 @@ function PortalDashboard() {
     <PortalShell>
       <div className="rounded-2xl bg-gradient-to-br from-primary to-[var(--primary-light)] p-8 text-primary-foreground shadow-[var(--shadow-soft)]">
         <p className="text-sm opacity-90">Assalaamu alaikum,</p>
-        <h1 className="mt-1 font-display text-3xl font-bold">Welkom {profile?.full_name ?? user?.email} 👋</h1>
+        <h1 className="mt-1 font-display text-2xl font-bold break-all">Welkom {profile?.full_name ?? user?.email} 👋</h1>
         <p className="mt-2 text-sm opacity-90">{profile?.company ?? "Fijn dat je er bent."}</p>
       </div>
 
