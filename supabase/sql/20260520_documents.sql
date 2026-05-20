@@ -1,18 +1,8 @@
 -- Documents feature: table + storage bucket + RLS
 -- Toepassen via Supabase Dashboard SQL editor of `supabase db push`.
 
-create or replace function public.is_admin(_uid uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.user_roles
-    where user_id = _uid and role = 'admin'
-  )
-$$;
+-- Hergebruikt de bestaande public.is_admin(uuid) functie (parameter heet _user_id).
+-- Niet opnieuw aanmaken — andere policies hangen er al aan.
 
 create table if not exists public.documents (
   id uuid primary key default gen_random_uuid(),
