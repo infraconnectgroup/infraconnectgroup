@@ -90,3 +90,6 @@ drop policy if exists "documents_obj_admin_delete" on storage.objects;
 create policy "documents_obj_admin_delete" on storage.objects
   for delete to authenticated
   using (bucket_id = 'documents' and public.is_admin(auth.uid()));
+
+-- Rechten voor authenticated rol
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.documents TO authenticated;
