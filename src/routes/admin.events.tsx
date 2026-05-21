@@ -178,6 +178,7 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
   const [description, setDescription] = useState(event?.description ?? "");
   const [location, setLocation] = useState(event?.location ?? "");
   const [eventDate, setEventDate] = useState(event ? toLocalInput(event.event_date) : "");
+  const [endTime, setEndTime] = useState(event?.end_time ? event.end_time.slice(0, 5) : "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -185,12 +186,20 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
     e.preventDefault();
     setErr("");
     if (!title.trim() || !eventDate) { setErr("Titel en datum zijn verplicht."); return; }
+    if (endTime) {
+      const start = new Date(eventDate);
+      const [eh, em] = endTime.split(":").map(Number);
+      const endDate = new Date(start);
+      endDate.setHours(eh, em, 0, 0);
+      if (endDate <= start) { setErr("Eindtijd moet later zijn dan de starttijd."); return; }
+    }
     setBusy(true);
     const payload = {
       title: title.trim(),
       description: description.trim() || null,
       location: location.trim() || null,
       event_date: new Date(eventDate).toISOString(),
+      end_time: endTime ? `${endTime}:00` : null,
     };
     const { error } = event
       ? await supabase.from("events").update(payload).eq("id", event.id)
@@ -198,6 +207,7 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
     setBusy(false);
     if (error) { setErr(error.message); return; }
     onSaved();
+
   }
 
   return (
