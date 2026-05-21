@@ -12,7 +12,7 @@ export const Route = createFileRoute("/portaal/agenda")({
 type EventRow = { id: string; title: string; description: string | null; event_date: string; end_time: string | null; location: string | null };
 
 function formatWhen(eventDateIso: string, endTime: string | null): string {
-  const base = new Date(eventDateIso).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" });
+  const base = new Date(eventDateIso).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })
   .replace(" om ", " • ");
   if (!endTime) return base;
   const [h, m] = endTime.split(":");
