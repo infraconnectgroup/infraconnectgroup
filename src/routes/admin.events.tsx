@@ -8,6 +8,16 @@ export const Route = createFileRoute("/admin/events")({
   component: AdminEventsPage,
 });
 
+export function formatEventWhen(eventDateIso: string, endTime: string | null): string {
+  const start = new Date(eventDateIso);
+  const base = start.toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" });
+  if (!endTime) return base;
+  const [h, m] = endTime.split(":");
+  return `${base} – ${h}:${m}`;
+}
+
+
+
 type EventRow = {
   id: string;
   title: string;
