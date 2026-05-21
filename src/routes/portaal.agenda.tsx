@@ -9,7 +9,15 @@ export const Route = createFileRoute("/portaal/agenda")({
   component: AgendaPage,
 });
 
-type EventRow = { id: string; title: string; description: string | null; event_date: string; location: string | null };
+type EventRow = { id: string; title: string; description: string | null; event_date: string; end_time: string | null; location: string | null };
+
+function formatWhen(eventDateIso: string, endTime: string | null): string {
+  const base = new Date(eventDateIso).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" });
+  if (!endTime) return base;
+  const [h, m] = endTime.split(":");
+  return `${base} – ${h}:${m}`;
+}
+
 
 function AgendaPage() {
   const { user } = useAuth();
@@ -71,7 +79,8 @@ function AgendaPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
                           <Calendar size={12} />
-                          {new Date(e.event_date).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}
+                          {formatWhen(e.event_date, e.end_time)}
+
                         </div>
                         <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
                         {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}
@@ -99,7 +108,7 @@ function AgendaPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
                             <Calendar size={12} />
-                            {new Date(e.event_date).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}
+                            {formatWhen(e.event_date, e.end_time)}
                           </div>
                           <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
                           {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}

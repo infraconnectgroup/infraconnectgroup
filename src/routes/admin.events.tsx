@@ -8,14 +8,26 @@ export const Route = createFileRoute("/admin/events")({
   component: AdminEventsPage,
 });
 
+export function formatEventWhen(eventDateIso: string, endTime: string | null): string {
+  const start = new Date(eventDateIso);
+  const base = start.toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" });
+  if (!endTime) return base;
+  const [h, m] = endTime.split(":");
+  return `${base} – ${h}:${m}`;
+}
+
+
+
 type EventRow = {
   id: string;
   title: string;
   description: string | null;
   event_date: string;
+  end_time: string | null;
   location: string | null;
   created_at: string;
 };
+
 
 type Registration = {
   user_id: string;
@@ -128,7 +140,7 @@ function Section({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent">
                     <Calendar size={12} />
-                    {new Date(e.event_date).toLocaleString("nl-NL", { dateStyle: "long", timeStyle: "short" })}
+                    {formatEventWhen(e.event_date, e.end_time)}
                   </div>
                   <h3 className="mt-1 font-display text-lg font-bold">{e.title}</h3>
                   {e.location && <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={12} /> {e.location}</p>}
@@ -166,6 +178,7 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
   const [description, setDescription] = useState(event?.description ?? "");
   const [location, setLocation] = useState(event?.location ?? "");
   const [eventDate, setEventDate] = useState(event ? toLocalInput(event.event_date) : "");
+  const [endTime, setEndTime] = useState(event?.end_time ? event.end_time.slice(0, 5) : "");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -173,12 +186,20 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
     e.preventDefault();
     setErr("");
     if (!title.trim() || !eventDate) { setErr("Titel en datum zijn verplicht."); return; }
+    if (endTime) {
+      const start = new Date(eventDate);
+      const [eh, em] = endTime.split(":").map(Number);
+      const endDate = new Date(start);
+      endDate.setHours(eh, em, 0, 0);
+      if (endDate <= start) { setErr("Eindtijd moet later zijn dan de starttijd."); return; }
+    }
     setBusy(true);
     const payload = {
       title: title.trim(),
       description: description.trim() || null,
       location: location.trim() || null,
       event_date: new Date(eventDate).toISOString(),
+      end_time: endTime ? `${endTime}:00` : null,
     };
     const { error } = event
       ? await supabase.from("events").update(payload).eq("id", event.id)
@@ -186,6 +207,7 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
     setBusy(false);
     if (error) { setErr(error.message); return; }
     onSaved();
+
   }
 
   return (
@@ -199,9 +221,15 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
           <Field label="Titel *">
             <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
-          <Field label="Datum & tijd *">
-            <input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-          </Field>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Datum & starttijd *">
+              <input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            </Field>
+            <Field label="Eindtijd (optioneel)">
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            </Field>
+          </div>
+
           <Field label="Locatie">
             <input value={location} onChange={(e) => setLocation(e.target.value)} maxLength={200} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
