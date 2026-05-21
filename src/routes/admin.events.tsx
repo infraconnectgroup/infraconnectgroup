@@ -13,9 +13,11 @@ type EventRow = {
   title: string;
   description: string | null;
   event_date: string;
+  end_time: string | null;
   location: string | null;
   created_at: string;
 };
+
 
 type Registration = {
   user_id: string;
