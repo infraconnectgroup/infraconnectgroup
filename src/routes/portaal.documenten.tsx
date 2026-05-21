@@ -100,10 +100,9 @@ function PortalDocumentenPage() {
       return;
     }
 
-    window.open(
-      data.signedUrl,
-      "_blank"
-    );
+    window.location.assign(
+  data.signedUrl
+);
   }
 
   return (
