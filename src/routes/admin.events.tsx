@@ -221,9 +221,15 @@ function EventDialog({ event, onClose, onSaved }: { event: EventRow | null; onCl
           <Field label="Titel *">
             <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
-          <Field label="Datum & tijd *">
-            <input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-          </Field>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Datum & starttijd *">
+              <input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            </Field>
+            <Field label="Eindtijd (optioneel)">
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            </Field>
+          </div>
+
           <Field label="Locatie">
             <input value={location} onChange={(e) => setLocation(e.target.value)} maxLength={200} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
