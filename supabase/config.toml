@@ -4,3 +4,6 @@ verify_jwt = false
 
 [functions.application-notify]
 verify_jwt = false
+
+[functions.event-register-notify]
+verify_jwt = true
