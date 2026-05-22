@@ -39,10 +39,37 @@ function AgendaPage() {
   }
   useEffect(() => { if (user) void load(); }, [user]);
 
+  const notifiedRef = (typeof window !== "undefined")
+    ? ((window as unknown as { __evNotified?: Set<string> }).__evNotified ??= new Set<string>())
+    : new Set<string>();
+
   async function register(eventId: string) {
     if (!user) return;
     setBusyId(eventId);
-    await supabase.from("event_registrations").insert({ event_id: eventId, user_id: user.id });
+    const { error } = await supabase.from("event_registrations").insert({ event_id: eventId, user_id: user.id });
+    if (!error) {
+      const key = `${user.id}:${eventId}`;
+      if (!notifiedRef.has(key)) {
+        notifiedRef.add(key);
+        // Fire-and-forget: mailfout mag registratie niet beïnvloeden
+        void (async () => {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+            await fetch(`https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/event-register-notify`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ event_id: eventId }),
+            });
+          } catch (e) {
+            console.warn("[agenda] notify failed", e);
+          }
+        })();
+      }
+    }
     await load();
     setBusyId(null);
   }
