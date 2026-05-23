@@ -51,19 +51,28 @@ function AgendaPage() {
       const key = `${user.id}:${eventId}`;
       if (!notifiedRef.has(key)) {
         notifiedRef.add(key);
-        // Fire-and-forget: mailfout mag registratie niet beïnvloeden
+        // Fire-and-forget: mailfout mag registratie niet beïnvloeden.
+        // keepalive zorgt dat de request afrondt ook bij rerender/navigatie
+        // (anders breekt de browser hem af → Edge Function "EarlyDrop").
         void (async () => {
           try {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-            await fetch(`https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/event-register-notify`, {
+            if (!session) {
+              console.warn("[agenda] notify skipped: no session");
+              return;
+            }
+            const res = await fetch(`https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/event-register-notify`, {
               method: "POST",
+              keepalive: true,
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${session.access_token}`,
+                apikey: "sb_publishable_uL2hLYBKeK3JIAs0wbXcXQ_dzcF78Bh",
               },
               body: JSON.stringify({ event_id: eventId }),
             });
+            const text = await res.text().catch(() => "");
+            console.log("[agenda] notify response", res.status, text);
           } catch (e) {
             console.warn("[agenda] notify failed", e);
           }
