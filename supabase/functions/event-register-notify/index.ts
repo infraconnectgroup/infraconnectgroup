@@ -7,71 +7,122 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json",
-    },
-  });
-}
-
 const SITE_URL =
   "https://businessclub-alislah.nl";
 
 const AGENDA_URL =
   `${SITE_URL}/portaal/agenda`;
 
-function fmtUtc(
-  d: Date,
+function json(
+  body: unknown,
+  status = 200,
 ) {
-  return d
-    .toISOString()
-    .replace(
-      /[-:]/g,
-      "",
-    )
-    .replace(
-      /\.\d+/,
-      "",
+  return new Response(
+    JSON.stringify(body),
+    {
+      status,
+      headers: {
+        ...corsHeaders,
+        "Content-Type":
+          "application/json",
+      },
+    },
+  );
+}
+
+function pad(
+  n: number,
+) {
+  return String(n)
+    .padStart(
+      2,
+      "0",
     );
 }
 
+function fmtAmsterdam(
+  d: Date,
+) {
+  return (
+    `${d.getFullYear()}` +
+    `${pad(
+      d.getMonth() + 1,
+    )}` +
+    `${pad(
+      d.getDate(),
+    )}` +
+    `T` +
+    `${pad(
+      d.getHours(),
+    )}` +
+    `${pad(
+      d.getMinutes(),
+    )}` +
+    "00"
+  );
+}
+
 function buildIcs(
-  title: string,
-  description: string,
-  location: string,
-  start: Date,
-  end?: Date,
+  opts: {
+    uid: string;
+    title: string;
+    description: string;
+    location: string;
+    start: Date;
+    end?: Date;
+  },
 ) {
   return [
     "BEGIN:VCALENDAR",
+
     "VERSION:2.0",
+
     "PRODID:-//Businessclub Al Islah//Events//NL",
+
     "CALSCALE:GREGORIAN",
+
     "METHOD:PUBLISH",
+
+    "BEGIN:VTIMEZONE",
+
+    "TZID:Europe/Amsterdam",
+
+    "END:VTIMEZONE",
+
     "BEGIN:VEVENT",
 
-    `UID:${crypto.randomUUID()}`,
+    `UID:${opts.uid}`,
 
-    `DTSTART:${fmtUtc(
-      start,
+    `DTSTART;TZID=Europe/Amsterdam:${fmtAmsterdam(
+      opts.start,
     )}`,
 
-    end
-      ? `DTEND:${fmtUtc(
-          end,
+    opts.end
+      ? `DTEND;TZID=Europe/Amsterdam:${fmtAmsterdam(
+          opts.end,
         )}`
       : "",
 
-    `SUMMARY:${title}`,
+    `SUMMARY:${opts.title}`,
 
-    `DESCRIPTION:${description}`,
+    `DESCRIPTION:${opts.description}`,
 
-    `LOCATION:${location}`,
+    `LOCATION:${opts.location}`,
+
+    "ORGANIZER;CN=Businessclub Al Islah:mailto:info@businessclub-alislah.nl",
+
+    "BEGIN:VALARM",
+
+    "TRIGGER:-PT15M",
+
+    "ACTION:DISPLAY",
+
+    "DESCRIPTION:Event start over 15 minuten",
+
+    "END:VALARM",
 
     "END:VEVENT",
+
     "END:VCALENDAR",
   ]
     .filter(
@@ -98,10 +149,6 @@ Deno.serve(
     }
 
     try {
-      console.log(
-        "[event-register-notify] started",
-      );
-
       const authHeader =
         req.headers.get(
           "Authorization",
@@ -137,11 +184,9 @@ Deno.serve(
       if (
         !user?.email
       ) {
-        return json(
-          {
-            ok: true,
-          },
-        );
+        return json({
+          ok: true,
+        });
       }
 
       const {
@@ -151,15 +196,13 @@ Deno.serve(
           .from(
             "events",
           )
-          .select(
-            `
+          .select(`
 title,
 description,
 event_date,
 end_time,
 location
-`,
-          )
+`)
           .eq(
             "id",
             body.event_id,
@@ -215,24 +258,43 @@ location
       const icsTitle =
         `Businessclub Al Islah – ${ev.title}`;
 
+      const icsDescription =
+        `
+Businessclub Al Islah
+
+${ev.description ?? ""}
+
+Bekijk aanmeldingen:
+${AGENDA_URL}
+`;
+
       const ics =
         buildIcs(
-          icsTitle,
-          ev.description ??
-            "",
-          ev.location ??
-            "",
-          start,
-          end,
-        );
+          {
+            uid:
+              `${body.event_id}-${user.id}@businessclub-alislah.nl`,
 
-      const encoder =
-        new TextEncoder();
+            title:
+              icsTitle,
+
+            description:
+              icsDescription,
+
+            location:
+              ev.location ??
+              "",
+
+            start,
+
+            end,
+          },
+        );
 
       const bytes =
-        encoder.encode(
-          ics,
-        );
+        new TextEncoder()
+          .encode(
+            ics,
+          );
 
       let binary =
         "";
@@ -289,65 +351,62 @@ location
           },
         );
 
-      const res =
-        await fetch(
-          "https://api.resend.com/emails",
-          {
-            method:
-              "POST",
-
-            headers:
-              {
-                Authorization:
-                  `Bearer ${Deno.env.get(
-                    "RESEND_API_KEY",
-                  )}`,
-
-                "Content-Type":
-                  "application/json",
-              },
-
-            body:
-              JSON.stringify(
-                {
-                  from:
-                    "Businessclub Al Islah <info@businessclub-alislah.nl>",
-
-                  to: [
-                    user.email,
-                  ],
-
-                  subject:
-                    `Bevestiging aanmelding – ${ev.title}`,
-
-                  html,
-
-                  attachments:
-                    [
-                      {
-                        filename:
-                          "event.ics",
-
-                        content:
-                          ics64,
-                      },
-                    ],
-                },
-              ),
-          },
-        );
-
-      console.log(
-        "[event-register-notify] resend response",
-        res.status,
-      );
-
-      return json(
+      await fetch(
+        "https://api.resend.com/emails",
         {
-          ok: true,
+          method:
+            "POST",
+
+          headers:
+            {
+              Authorization:
+                `Bearer ${Deno.env.get(
+                  "RESEND_API_KEY",
+                )}`,
+
+              "Content-Type":
+                "application/json",
+
+              "X-Entity-Ref-ID":
+                `event-${body.event_id}-${user.id}`,
+            },
+
+          body:
+            JSON.stringify(
+              {
+                from:
+                  "Businessclub Al Islah <info@businessclub-alislah.nl>",
+
+                to: [
+                  user.email,
+                ],
+
+                subject:
+                  `Bevestiging aanmelding – ${ev.title}`,
+
+                html,
+
+                attachments:
+                  [
+                    {
+                      filename:
+                        "event.ics",
+
+                      content:
+                        ics64,
+                    },
+                  ],
+              },
+            ),
         },
       );
-    } catch (e) {
+
+      return json({
+        ok: true,
+      });
+    } catch (
+      e
+    ) {
       console.error(
         e,
       );
@@ -363,174 +422,62 @@ location
 );
 
 function renderEmail(
-  d: {
-    title: string;
-    description: string;
-    dateFmt: string;
-    startTimeFmt: string;
-    endTimeFmt: string;
-    location: string;
-    mapsUrl: string;
-  },
+  d: any,
 ) {
-  const logoUrl =
-    `${SITE_URL}/logo-alislah.png`;
-
-  const primary =
-    "#248eb7";
-
-  const accent =
-    "#bd8d2b";
+  const cleanEnd =
+    d.endTimeFmt.replace(
+      /:\d{2}$/,
+      "",
+    );
 
   const time =
-    d.endTimeFmt
-      ? `${d.startTimeFmt} – ${d.endTimeFmt}`
+    cleanEnd
+      ? `${d.startTimeFmt} – ${cleanEnd}`
       : d.startTimeFmt;
 
   return `
-<!DOCTYPE html>
-<html lang="nl">
+<html>
 
 <body
 style="
-margin:0;
-padding:0;
 background:#f4f6f8;
-">
-
-<table
-width="100%"
-style="
-background:#f4f6f8;
-">
-
-<tr>
-<td
-align="center"
-style="
-padding:32px 16px;
-">
-
-<table
-width="600"
-style="
-max-width:600px;
-width:100%;
-">
-
-<tr>
-<td
-align="center"
-style="
-padding:8px 0 24px;
-">
-
-<img
-src="${logoUrl}"
-width="100"
-height="100"
-style="
-border-radius:12px;
-"/>
-
-<div
-style="
-font-family:Georgia;
-font-size:18px;
-color:${primary};
-margin-top:12px;
-font-weight:700;
-">
-
-Businessclub Al Islah
-
-</div>
-
-</td>
-</tr>
-
-<tr>
-<td
-style="
-background:white;
-border-radius:16px;
-padding:40px 32px;
+padding:32px;
 ">
 
 <div
 style="
-text-align:center;
+display:none;
+max-height:0;
+overflow:hidden;
+opacity:0;
 ">
 
-<span
-style="
-background:#fdf3df;
-color:${accent};
-padding:6px 14px;
-border-radius:999px;
-">
-
-Aanmelding bevestigd
-
-</span>
-
-</div>
-
-<h1
-style="
-text-align:center;
-">
-
+Bevestiging voor
 ${d.title}
 
-</h1>
+</div>
+
+<h2>
+${d.title}
+</h2>
 
 <p>
-<strong>
 Datum:
-</strong>
-
 ${d.dateFmt}
 </p>
 
 <p>
-<strong>
 Tijd:
-</strong>
-
 ${time}
 </p>
 
-${
-  d.location
-    ? `
 <p>
-<strong>
-Locatie:
-</strong>
-
 ${d.location}
 </p>
-`
-    : ""
-}
 
-${
-  d.description
-    ? `
 <p>
-
 ${d.description}
-
 </p>
-`
-    : ""
-}
-
-${
-  d.mapsUrl
-    ? `
-<p>
 
 <a
 href="${d.mapsUrl}"
@@ -540,44 +487,16 @@ Open locatie
 
 </a>
 
-</p>
-`
-    : ""
-}
-
-<p>
+<br/><br/>
 
 <a
 href="${AGENDA_URL}"
 >
 
-Bekijk mijn aanmeldingen
+Bekijk mijn
+aanmeldingen
 
 </a>
-
-</p>
-
-<p
-style="
-font-size:13px;
-color:#64748b;
-">
-
-Agenda-uitnodiging
-(.ics)
-bijgevoegd
-
-</p>
-
-</td>
-</tr>
-
-</table>
-
-</td>
-</tr>
-
-</table>
 
 </body>
 
