@@ -74,19 +74,13 @@ function buildIcs(
 ) {
   return [
     "BEGIN:VCALENDAR",
-
     "VERSION:2.0",
-
     "PRODID:-//Businessclub Al Islah//Events//NL",
-
     "CALSCALE:GREGORIAN",
-
     "METHOD:PUBLISH",
 
     "BEGIN:VTIMEZONE",
-
     "TZID:Europe/Amsterdam",
-
     "END:VTIMEZONE",
 
     "BEGIN:VEVENT",
@@ -112,25 +106,16 @@ function buildIcs(
     "ORGANIZER;CN=Businessclub Al Islah:mailto:info@businessclub-alislah.nl",
 
     "BEGIN:VALARM",
-
     "TRIGGER:-PT15M",
-
     "ACTION:DISPLAY",
-
     "DESCRIPTION:Event start over 15 minuten",
-
     "END:VALARM",
 
     "END:VEVENT",
-
     "END:VCALENDAR",
   ]
-    .filter(
-      Boolean,
-    )
-    .join(
-      "\r\n",
-    );
+    .filter(Boolean)
+    .join("\r\n");
 }
 
 Deno.serve(
@@ -255,19 +240,6 @@ location
             )}`
           : "";
 
-      const icsTitle =
-        `Businessclub Al Islah – ${ev.title}`;
-
-      const icsDescription =
-        `
-Businessclub Al Islah
-
-${ev.description ?? ""}
-
-Bekijk aanmeldingen:
-${AGENDA_URL}
-`;
-
       const ics =
         buildIcs(
           {
@@ -275,10 +247,17 @@ ${AGENDA_URL}
               `${body.event_id}-${user.id}@businessclub-alislah.nl`,
 
             title:
-              icsTitle,
+              `Businessclub Al Islah – ${ev.title}`,
 
             description:
-              icsDescription,
+              `
+Businessclub Al Islah
+
+${ev.description ?? ""}
+
+Bekijk aanmeldingen:
+${AGENDA_URL}
+`,
 
             location:
               ev.location ??
@@ -366,9 +345,6 @@ ${AGENDA_URL}
 
               "Content-Type":
                 "application/json",
-
-              "X-Entity-Ref-ID":
-                `event-${body.event_id}-${user.id}`,
             },
 
           body:
@@ -424,6 +400,15 @@ ${AGENDA_URL}
 function renderEmail(
   d: any,
 ) {
+  const primary =
+    "#248eb7";
+
+  const accent =
+    "#bd8d2b";
+
+  const logoUrl =
+    `${SITE_URL}/logo-alislah.png`;
+
   const cleanEnd =
     d.endTimeFmt.replace(
       /:\d{2}$/,
@@ -436,16 +421,17 @@ function renderEmail(
       : d.startTimeFmt;
 
   return `
-<html>
+<!DOCTYPE html>
 
-<body
-style="
-background:#f4f6f8;
-padding:32px;
+<html lang="nl">
+
+<body style="
+margin:0;
+padding:0;
+background:#f3f4f6;
 ">
 
-<div
-style="
+<div style="
 display:none;
 max-height:0;
 overflow:hidden;
@@ -457,46 +443,195 @@ ${d.title}
 
 </div>
 
-<h2>
+<table
+width="100%"
+style="
+background:#f3f4f6;
+padding:32px 16px;
+">
+
+<tr>
+
+<td align="center">
+
+<table
+width="620"
+style="
+max-width:620px;
+width:100%;
+">
+
+<tr>
+
+<td
+align="center"
+style="
+padding-bottom:28px;
+">
+
+<img
+src="${logoUrl}"
+width="90"
+/>
+
+<div style="
+font-size:18px;
+font-weight:700;
+color:${primary};
+font-family:Georgia;
+padding-top:14px;
+">
+
+Businessclub Al Islah
+
+</div>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="
+background:white;
+border-radius:24px;
+padding:42px 36px;
+">
+
+<div
+align="center"
+style="
+margin-bottom:20px;
+">
+
+<span style="
+background:#f7edd7;
+color:${accent};
+padding:10px 18px;
+border-radius:999px;
+">
+
+Aanmelding bevestigd
+
+</span>
+
+</div>
+
+<h1 style="
+font-size:30px;
+text-align:center;
+margin-bottom:30px;
+">
+
 ${d.title}
-</h2>
+
+</h1>
 
 <p>
-Datum:
+<strong>Datum:</strong>
 ${d.dateFmt}
 </p>
 
 <p>
-Tijd:
+<strong>Tijd:</strong>
 ${time}
 </p>
 
+${
+  d.location
+    ? `
 <p>
+<strong>
+Locatie:
+</strong>
 ${d.location}
 </p>
+`
+    : ""
+}
 
-<p>
+${
+  d.description
+    ? `
+<p style="
+line-height:1.7;
+">
 ${d.description}
 </p>
+`
+    : ""
+}
 
+<div style="
+text-align:center;
+padding-top:24px;
+">
+
+${
+  d.mapsUrl
+    ? `
 <a
 href="${d.mapsUrl}"
->
+style="
+display:inline-block;
+background:${primary};
+color:white;
+padding:14px 22px;
+border-radius:12px;
+text-decoration:none;
+margin:4px;
+">
 
 Open locatie
 
 </a>
-
-<br/><br/>
+`
+    : ""
+}
 
 <a
 href="${AGENDA_URL}"
->
+style="
+display:inline-block;
+background:${accent};
+color:white;
+padding:14px 22px;
+border-radius:12px;
+text-decoration:none;
+margin:4px;
+">
 
 Bekijk mijn
 aanmeldingen
 
 </a>
+
+</div>
+
+<p style="
+font-size:13px;
+color:#64748b;
+text-align:center;
+padding-top:28px;
+">
+
+Agenda-uitnodiging
+(.ics)
+bijgevoegd
+
+</p>
+
+</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
 
 </body>
 
