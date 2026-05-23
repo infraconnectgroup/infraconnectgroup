@@ -244,6 +244,7 @@ Deno.serve(async (req) => {
       }),
     });
 
+    console.log("[event-register-notify] resend response", resendRes.status);
     if (!resendRes.ok) {
       const errText = await resendRes.text();
       console.error("[event-register-notify] Resend error:", resendRes.status, errText);
