@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
       mapsUrl,
     });
 
+    console.log("[event-register-notify] sending email to", recipient);
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
