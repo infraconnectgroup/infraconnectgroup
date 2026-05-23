@@ -91,8 +91,10 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
+    console.log("[event-register-notify] started");
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader.startsWith("Bearer ")) {
+      console.warn("[event-register-notify] no bearer token");
       return json({ error: "Unauthorized" }, 401);
     }
 
@@ -105,6 +107,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
+    console.log("[event-register-notify] body", body);
     const eventId = typeof body.event_id === "string" ? body.event_id : "";
     if (!eventId) return json({ error: "event_id ontbreekt" }, 400);
 
@@ -112,31 +115,40 @@ Deno.serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    // Verifieer gebruiker via JWT
     const { data: userData, error: userErr } = await admin.auth.getUser(
       authHeader.replace("Bearer ", ""),
     );
-    if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
+    if (userErr || !userData.user) {
+      console.warn("[event-register-notify] auth failed", userErr);
+      return json({ error: "Unauthorized" }, 401);
+    }
     const user = userData.user;
+    console.log("[event-register-notify] user", user.id, user.email);
     const recipient = user.email;
     if (!recipient) return json({ error: "Geen e-mailadres" }, 400);
 
-    // Verifieer registratie bestaat (voorkomt misbruik / mail zonder registratie)
     const { data: reg } = await admin
       .from("event_registrations")
       .select("event_id,user_id")
       .eq("event_id", eventId)
       .eq("user_id", user.id)
       .maybeSingle();
-    if (!reg) return json({ error: "Geen registratie gevonden" }, 404);
+    if (!reg) {
+      console.warn("[event-register-notify] registration not found", eventId, user.id);
+      return json({ error: "Geen registratie gevonden" }, 404);
+    }
+    console.log("[event-register-notify] registration found");
 
-    // Haal event op
     const { data: ev, error: evErr } = await admin
       .from("events")
       .select("id,title,description,event_date,end_time,location")
       .eq("id", eventId)
       .maybeSingle();
-    if (evErr || !ev) return json({ error: "Event niet gevonden" }, 404);
+    if (evErr || !ev) {
+      console.warn("[event-register-notify] event not found", evErr);
+      return json({ error: "Event niet gevonden" }, 404);
+    }
+    console.log("[event-register-notify] event found", ev.id, ev.title);
 
     const start = new Date(ev.event_date);
     let end: Date;
