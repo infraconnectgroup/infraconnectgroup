@@ -1,5 +1,3 @@
-// supabase/functions/event-register-notify/index.ts
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -17,21 +15,6 @@ function json(body: unknown, status = 200) {
       "Content-Type": "application/json",
     },
   });
-}
-
-const DEFAULT_FROM =
-  "Businessclub Al Islah <info@businessclub-alislah.nl>";
-
-const SITE_URL = "https://businessclub-alislah.nl";
-const AGENDA_URL = `${SITE_URL}/portaal/agenda`;
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 Deno.serve(async (req) => {
@@ -134,12 +117,6 @@ Deno.serve(async (req) => {
     const user =
       userData.user;
 
-    console.log(
-      "[event-register-notify] user",
-      user.id,
-      user.email,
-    );
-
     const recipient =
       user.email;
 
@@ -166,11 +143,7 @@ Deno.serve(async (req) => {
       .select(
         `
         id,
-        title,
-        description,
-        event_date,
-        end_time,
-        location
+        title
       `,
       )
       .eq(
@@ -203,40 +176,11 @@ Deno.serve(async (req) => {
       ev.title,
     );
 
-    const location =
-      ev.location ??
-      "";
-
-    const mapsUrl =
-      location
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            location,
-          )}`
-        : "";
-
-    const html =
-      renderEmail({
-        title:
-          ev.title,
-        description:
-          ev.description ??
-          "",
-        date:
-          ev.event_date,
-        start:
-          ev.event_date,
-        end:
-          ev.end_time ??
-          "",
-        location,
-        mapsUrl,
-      });
-
     console.log(
       "[event-register-notify] sending email",
     );
 
-    const resendRes =
+    const res =
       await fetch(
         "https://api.resend.com/emails",
         {
@@ -257,19 +201,24 @@ Deno.serve(async (req) => {
             JSON.stringify(
               {
                 from:
-                  Deno.env.get(
-                    "CONTACT_FROM_EMAIL",
-                  ) ??
-                  DEFAULT_FROM,
+                  "Businessclub Al Islah <info@businessclub-alislah.nl>",
 
                 to: [
                   recipient,
                 ],
 
                 subject:
-                  `Bevestiging aanmelding – ${ev.title}`,
+                  `TEST event mail - ${ev.title}`,
 
-                html,
+                html:
+                  `
+                  <h1>Test</h1>
+
+                  <p>
+                  Event:
+                  ${ev.title}
+                  </p>
+                  `,
               },
             ),
         },
@@ -277,25 +226,23 @@ Deno.serve(async (req) => {
 
     console.log(
       "[event-register-notify] resend response",
-      resendRes.status,
+      res.status,
     );
 
-    if (
-      !resendRes.ok
-    ) {
+    if (!res.ok) {
       const txt =
-        await resendRes.text();
+        await res.text();
 
       console.error(
         "[event-register-notify] resend",
-        resendRes.status,
+        res.status,
         txt,
       );
 
       return json(
         {
           error:
-            "Mail fout",
+            txt,
         },
         502,
       );
@@ -322,74 +269,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-function renderEmail(
-  d: {
-    title: string;
-    description: string;
-    date: string;
-    start: string;
-    end: string;
-    location: string;
-    mapsUrl: string;
-  },
-) {
-  return `
-<html>
-<body>
-
-<h2>
-Aanmelding bevestigd
-</h2>
-
-<p>
-Je bent aangemeld voor:
-<b>${escapeHtml(
-    d.title,
-  )}</b>
-</p>
-
-<p>
-Datum:
-${escapeHtml(
-    d.date,
-  )}
-</p>
-
-${
-    d.location
-      ? `
-<p>
-Locatie:
-${escapeHtml(
-  d.location,
-)}
-</p>
-`
-      : ""
-  }
-
-${
-    d.mapsUrl
-      ? `
-<p>
-<a href="${escapeHtml(
-          d.mapsUrl,
-        )}">
-Open locatie
-</a>
-</p>
-`
-      : ""
-  }
-
-<p>
-<a href="${AGENDA_URL}">
-Bekijk mijn aanmeldingen
-</a>
-</p>
-
-</body>
-</html>
-`;
-}
