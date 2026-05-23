@@ -51,7 +51,7 @@ function fmtAmsterdam(
     `${pad(
       d.getDate(),
     )}` +
-    `T` +
+    "T" +
     `${pad(
       d.getHours(),
     )}` +
@@ -125,6 +125,10 @@ function buildIcs(
 
     `DESCRIPTION:${escapeIcs(
       opts.description,
+    )}\n`,
+
+    `X-ALT-DESC;FMTTYPE=text/plain:${escapeIcs(
+      opts.description,
     )}`,
 
     `LOCATION:${escapeIcs(
@@ -143,8 +147,12 @@ function buildIcs(
 
     "END:VCALENDAR",
   ]
-    .filter(Boolean)
-    .join("\r\n");
+    .filter(
+      Boolean,
+    )
+    .join(
+      "\r\n",
+    );
 }
 
 Deno.serve(
@@ -269,60 +277,6 @@ location
             )}`
           : "";
 
-      const cleanEnd =
-        (
-          ev.end_time ??
-          ""
-        ).replace(
-          /:\d{2}$/,
-          "",
-        );
-
-      const time =
-        cleanEnd
-          ? `${start.toLocaleTimeString(
-              "nl-NL",
-              {
-                hour:
-                  "2-digit",
-                minute:
-                  "2-digit",
-              },
-            )} – ${cleanEnd}`
-          : start.toLocaleTimeString(
-              "nl-NL",
-              {
-                hour:
-                  "2-digit",
-                minute:
-                  "2-digit",
-              },
-            );
-
-      const icsDescription =
-        `
-Businessclub Al Islah
-
-Event:
-${ev.title}
-
-Datum:
-${start.toLocaleDateString(
-  "nl-NL",
-)}
-
-Tijd:
-${time}
-
-Locatie:
-${ev.location ?? "-"}
-
-${ev.description ?? ""}
-
-Bekijk aanmeldingen:
-${AGENDA_URL}
-`;
-
       const ics =
         buildIcs(
           {
@@ -333,7 +287,8 @@ ${AGENDA_URL}
               `Businessclub Al Islah – ${ev.title}`,
 
             description:
-              icsDescription,
+              ev.description ??
+              "",
 
             location:
               ev.location ??
@@ -369,7 +324,40 @@ ${AGENDA_URL}
         );
 
       const html =
-        `<h2>${ev.title}</h2>`;
+        renderEmail({
+          title:
+            ev.title,
+
+          description:
+            ev.description ??
+            "",
+
+          dateFmt:
+            start.toLocaleDateString(
+              "nl-NL",
+            ),
+
+          startTimeFmt:
+            start.toLocaleTimeString(
+              "nl-NL",
+              {
+                hour:
+                  "2-digit",
+                minute:
+                  "2-digit",
+              },
+            ),
+
+          endTimeFmt:
+            ev.end_time ??
+            "",
+
+          location:
+            ev.location ??
+            "",
+
+          mapsUrl,
+        });
 
       await fetch(
         "https://api.resend.com/emails",
@@ -437,3 +425,17 @@ ${AGENDA_URL}
     }
   },
 );
+
+function renderEmail(
+  d: any,
+) {
+  return `
+<h2>
+${d.title}
+</h2>
+
+<p>
+${d.description}
+</p>
+`;
+}
