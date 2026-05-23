@@ -62,6 +62,28 @@ function fmtAmsterdam(
   );
 }
 
+function escapeIcs(
+  value: string,
+) {
+  return value
+    .replace(
+      /\\/g,
+      "\\\\",
+    )
+    .replace(
+      /\n/g,
+      "\\n",
+    )
+    .replace(
+      /,/g,
+      "\\,",
+    )
+    .replace(
+      /;/g,
+      "\\;",
+    );
+}
+
 function buildIcs(
   opts: {
     uid: string;
@@ -97,11 +119,17 @@ function buildIcs(
         )}`
       : "",
 
-    `SUMMARY:${opts.title}`,
+    `SUMMARY:${escapeIcs(
+      opts.title,
+    )}`,
 
-    `DESCRIPTION:${opts.description}`,
+    `DESCRIPTION:${escapeIcs(
+      opts.description,
+    )}`,
 
-    `LOCATION:${opts.location}`,
+    `LOCATION:${escapeIcs(
+      opts.location,
+    )}`,
 
     "ORGANIZER;CN=Businessclub Al Islah:mailto:info@businessclub-alislah.nl",
 
@@ -112,6 +140,7 @@ function buildIcs(
     "END:VALARM",
 
     "END:VEVENT",
+
     "END:VCALENDAR",
   ]
     .filter(Boolean)
@@ -240,6 +269,60 @@ location
             )}`
           : "";
 
+      const cleanEnd =
+        (
+          ev.end_time ??
+          ""
+        ).replace(
+          /:\d{2}$/,
+          "",
+        );
+
+      const time =
+        cleanEnd
+          ? `${start.toLocaleTimeString(
+              "nl-NL",
+              {
+                hour:
+                  "2-digit",
+                minute:
+                  "2-digit",
+              },
+            )} – ${cleanEnd}`
+          : start.toLocaleTimeString(
+              "nl-NL",
+              {
+                hour:
+                  "2-digit",
+                minute:
+                  "2-digit",
+              },
+            );
+
+      const icsDescription =
+        `
+Businessclub Al Islah
+
+Event:
+${ev.title}
+
+Datum:
+${start.toLocaleDateString(
+  "nl-NL",
+)}
+
+Tijd:
+${time}
+
+Locatie:
+${ev.location ?? "-"}
+
+${ev.description ?? ""}
+
+Bekijk aanmeldingen:
+${AGENDA_URL}
+`;
+
       const ics =
         buildIcs(
           {
@@ -250,14 +333,7 @@ location
               `Businessclub Al Islah – ${ev.title}`,
 
             description:
-              `
-Businessclub Al Islah
-
-${ev.description ?? ""}
-
-Bekijk aanmeldingen:
-${AGENDA_URL}
-`,
+              icsDescription,
 
             location:
               ev.location ??
@@ -293,42 +369,7 @@ ${AGENDA_URL}
         );
 
       const html =
-        renderEmail(
-          {
-            title:
-              ev.title,
-
-            description:
-              ev.description ??
-              "",
-
-            dateFmt:
-              start.toLocaleDateString(
-                "nl-NL",
-              ),
-
-            startTimeFmt:
-              start.toLocaleTimeString(
-                "nl-NL",
-                {
-                  hour:
-                    "2-digit",
-                  minute:
-                    "2-digit",
-                },
-              ),
-
-            endTimeFmt:
-              ev.end_time ??
-              "",
-
-            location:
-              ev.location ??
-              "",
-
-            mapsUrl,
-          },
-        );
+        `<h2>${ev.title}</h2>`;
 
       await fetch(
         "https://api.resend.com/emails",
@@ -396,245 +437,3 @@ ${AGENDA_URL}
     }
   },
 );
-
-function renderEmail(
-  d: any,
-) {
-  const primary =
-    "#248eb7";
-
-  const accent =
-    "#bd8d2b";
-
-  const logoUrl =
-    `${SITE_URL}/logo-alislah.png`;
-
-  const cleanEnd =
-    d.endTimeFmt.replace(
-      /:\d{2}$/,
-      "",
-    );
-
-  const time =
-    cleanEnd
-      ? `${d.startTimeFmt} – ${cleanEnd}`
-      : d.startTimeFmt;
-
-  return `
-<!DOCTYPE html>
-
-<html lang="nl">
-
-<body style="
-margin:0;
-padding:0;
-background:#f3f4f6;
-">
-
-<div style="
-display:none;
-max-height:0;
-overflow:hidden;
-opacity:0;
-">
-
-Bevestiging voor
-${d.title}
-
-</div>
-
-<table
-width="100%"
-style="
-background:#f3f4f6;
-padding:32px 16px;
-">
-
-<tr>
-
-<td align="center">
-
-<table
-width="620"
-style="
-max-width:620px;
-width:100%;
-">
-
-<tr>
-
-<td
-align="center"
-style="
-padding-bottom:28px;
-">
-
-<img
-src="${logoUrl}"
-width="90"
-/>
-
-<div style="
-font-size:18px;
-font-weight:700;
-color:${primary};
-font-family:Georgia;
-padding-top:14px;
-">
-
-Businessclub Al Islah
-
-</div>
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="
-background:white;
-border-radius:24px;
-padding:42px 36px;
-">
-
-<div
-align="center"
-style="
-margin-bottom:20px;
-">
-
-<span style="
-background:#f7edd7;
-color:${accent};
-padding:10px 18px;
-border-radius:999px;
-">
-
-Aanmelding bevestigd
-
-</span>
-
-</div>
-
-<h1 style="
-font-size:30px;
-text-align:center;
-margin-bottom:30px;
-">
-
-${d.title}
-
-</h1>
-
-<p>
-<strong>Datum:</strong>
-${d.dateFmt}
-</p>
-
-<p>
-<strong>Tijd:</strong>
-${time}
-</p>
-
-${
-  d.location
-    ? `
-<p>
-<strong>
-Locatie:
-</strong>
-${d.location}
-</p>
-`
-    : ""
-}
-
-${
-  d.description
-    ? `
-<p style="
-line-height:1.7;
-">
-${d.description}
-</p>
-`
-    : ""
-}
-
-<div style="
-text-align:center;
-padding-top:24px;
-">
-
-${
-  d.mapsUrl
-    ? `
-<a
-href="${d.mapsUrl}"
-style="
-display:inline-block;
-background:${primary};
-color:white;
-padding:14px 22px;
-border-radius:12px;
-text-decoration:none;
-margin:4px;
-">
-
-Open locatie
-
-</a>
-`
-    : ""
-}
-
-<a
-href="${AGENDA_URL}"
-style="
-display:inline-block;
-background:${accent};
-color:white;
-padding:14px 22px;
-border-radius:12px;
-text-decoration:none;
-margin:4px;
-">
-
-Bekijk mijn
-aanmeldingen
-
-</a>
-
-</div>
-
-<p style="
-font-size:13px;
-color:#64748b;
-text-align:center;
-padding-top:28px;
-">
-
-Agenda-uitnodiging
-(.ics)
-bijgevoegd
-
-</p>
-
-</td>
-
-</tr>
-
-</table>
-
-</td>
-
-</tr>
-
-</table>
-
-</body>
-
-</html>
-`;
-}
