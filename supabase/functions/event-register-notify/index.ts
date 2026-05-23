@@ -125,7 +125,7 @@ function buildIcs(
 
     `DESCRIPTION:${escapeIcs(
       opts.description,
-    )}\n`,
+    )}`,
 
     `X-ALT-DESC;FMTTYPE=text/plain:${escapeIcs(
       opts.description,
@@ -147,12 +147,8 @@ function buildIcs(
 
     "END:VCALENDAR",
   ]
-    .filter(
-      Boolean,
-    )
-    .join(
-      "\r\n",
-    );
+    .filter(Boolean)
+    .join("\r\n");
 }
 
 Deno.serve(
@@ -371,7 +367,6 @@ location
                 `Bearer ${Deno.env.get(
                   "RESEND_API_KEY",
                 )}`,
-
               "Content-Type":
                 "application/json",
             },
@@ -409,6 +404,7 @@ location
       return json({
         ok: true,
       });
+
     } catch (
       e
     ) {
@@ -429,13 +425,206 @@ location
 function renderEmail(
   d: any,
 ) {
-  return `
-<h2>
-${d.title}
-</h2>
+  const primary =
+    "#248eb7";
 
-<p>
-${d.description}
+  const accent =
+    "#bd8d2b";
+
+  const logoUrl =
+    `${SITE_URL}/logo-alislah.png`;
+
+  const cleanEnd =
+    d.endTimeFmt.replace(
+      /:\d{2}$/,
+      "",
+    );
+
+  const time =
+    cleanEnd
+      ? `${d.startTimeFmt} – ${cleanEnd}`
+      : d.startTimeFmt;
+
+  return `
+<!DOCTYPE html>
+
+<html lang="nl">
+
+<body style="
+margin:0;
+padding:0;
+background:#f3f4f6;
+">
+
+<table
+width="100%"
+style="
+background:#f3f4f6;
+padding:32px 16px;
+">
+
+<tr>
+
+<td align="center">
+
+<table
+width="620"
+style="
+max-width:620px;
+width:100%;
+">
+
+<tr>
+
+<td
+align="center"
+style="
+padding-bottom:28px;
+">
+
+<img
+src="${logoUrl}"
+width="90"
+/>
+
+<div style="
+font-size:18px;
+font-weight:700;
+color:${primary};
+font-family:Georgia;
+padding-top:14px;
+">
+
+Businessclub Al Islah
+
+</div>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="
+background:white;
+border-radius:24px;
+padding:42px 36px;
+">
+
+<div
+align="center"
+style="
+margin-bottom:20px;
+">
+
+<span style="
+background:#f7edd7;
+color:${accent};
+padding:10px 18px;
+border-radius:999px;
+">
+
+Aanmelding bevestigd
+
+</span>
+
+</div>
+
+<h1 style="
+font-size:30px;
+text-align:center;
+margin-bottom:30px;
+">
+
+${d.title}
+
+</h1>
+
+<p><strong>Datum:</strong> ${d.dateFmt}</p>
+<p><strong>Tijd:</strong> ${time}</p>
+
+${
+  d.location
+    ? `<p><strong>Locatie:</strong> ${d.location}</p>`
+    : ""
+}
+
+${
+  d.description
+    ? `<p style="line-height:1.7;">${d.description}</p>`
+    : ""
+}
+
+<div style="
+text-align:center;
+padding-top:24px;
+">
+
+${
+d.mapsUrl
+?`
+<a
+href="${d.mapsUrl}"
+style="
+display:inline-block;
+background:${primary};
+color:white;
+padding:14px 22px;
+border-radius:12px;
+text-decoration:none;
+margin:4px;
+">
+
+Open locatie
+
+</a>
+`
+:""
+}
+
+<a
+href="${AGENDA_URL}"
+style="
+display:inline-block;
+background:${accent};
+color:white;
+padding:14px 22px;
+border-radius:12px;
+text-decoration:none;
+margin:4px;
+">
+
+Bekijk mijn aanmeldingen
+
+</a>
+
+</div>
+
+<p style="
+font-size:13px;
+color:#64748b;
+text-align:center;
+padding-top:28px;
+">
+
+Agenda-uitnodiging (.ics) bijgevoegd
+
 </p>
+
+</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
 `;
 }
