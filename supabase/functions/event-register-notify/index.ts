@@ -127,17 +127,7 @@ Deno.serve(async (req) => {
     const recipient = user.email;
     if (!recipient) return json({ error: "Geen e-mailadres" }, 400);
 
-    const { data: reg } = await admin
-      .from("event_registrations")
-      .select("event_id,user_id")
-      .eq("event_id", eventId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (!reg) {
-      console.warn("[event-register-notify] registration not found", eventId, user.id);
-      return json({ error: "Geen registratie gevonden" }, 404);
-    }
-    console.log("[event-register-notify] registration found");
+    console.log("[event-register-notify] registration assumed after successful insert", eventId, user.id);
 
     const { data: ev, error: evErr } = await admin
       .from("events")
