@@ -17,55 +17,28 @@ function json(body: unknown, status = 200) {
   });
 }
 
+const AGENDA_URL =
+  "https://businessclub-alislah.nl/portaal/agenda";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", {
-      headers: corsHeaders,
-    });
-  }
-
-  if (req.method !== "POST") {
-    return json(
-      { error: "Method not allowed" },
-      405,
+    return new Response(
+      "ok",
+      { headers: corsHeaders },
     );
   }
 
   try {
-    console.log(
-      "[event-register-notify] started",
-    );
-
     const authHeader =
       req.headers.get(
         "Authorization",
       ) ?? "";
 
     const body =
-      await req
-        .json()
-        .catch(() => ({}));
-
-    console.log(
-      "[event-register-notify] body",
-      body,
-    );
+      await req.json();
 
     const eventId =
-      typeof body.event_id ===
-      "string"
-        ? body.event_id
-        : "";
-
-    if (!eventId) {
-      return json(
-        {
-          error:
-            "event_id ontbreekt",
-        },
-        400,
-      );
-    }
+      body.event_id;
 
     const admin =
       createClient(
@@ -75,19 +48,10 @@ Deno.serve(async (req) => {
         Deno.env.get(
           "SUPABASE_SERVICE_ROLE_KEY",
         )!,
-        {
-          auth: {
-            persistSession:
-              false,
-            autoRefreshToken:
-              false,
-          },
-        },
       );
 
     const {
       data: userData,
-      error: userErr,
     } =
       await admin.auth.getUser(
         authHeader.replace(
@@ -96,89 +60,113 @@ Deno.serve(async (req) => {
         ),
       );
 
-    if (
-      userErr ||
-      !userData.user
-    ) {
-      console.error(
-        "[event-register-notify] auth error",
-        userErr,
-      );
-
-      return json(
-        {
-          error:
-            "Unauthorized",
-        },
-        401,
-      );
-    }
-
     const user =
       userData.user;
 
-    const recipient =
-      user.email;
-
-    console.log(
-      "[event-register-notify] recipient",
-      recipient,
-    );
-
-    if (!recipient) {
-      return json(
-        {
-          error:
-            "Geen email",
-        },
-        400,
-      );
+    if (!user?.email) {
+      return json({
+        ok: true,
+      });
     }
 
     const {
       data: ev,
-      error: evErr,
     } = await admin
       .from("events")
       .select(
         `
-        id,
-        title
+        title,
+        description,
+        event_date,
+        end_time,
+        location
       `,
       )
       .eq(
         "id",
         eventId,
       )
-      .maybeSingle();
+      .single();
 
-    if (
-      evErr ||
-      !ev
-    ) {
-      console.error(
-        "[event-register-notify] event error",
-        evErr,
-      );
+    const mapsUrl =
+      ev.location
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            ev.location,
+          )}`
+        : "";
 
-      return json(
-        {
-          error:
-            "Event niet gevonden",
-        },
-        404,
-      );
+    const html = `
+<h2>
+Aanmelding bevestigd
+</h2>
+
+<p>
+Je bent aangemeld voor:
+<strong>
+${ev.title}
+</strong>
+</p>
+
+<p>
+Datum:
+${ev.event_date}
+</p>
+
+${
+      ev.end_time
+        ? `
+<p>
+Eindtijd:
+${ev.end_time}
+</p>
+`
+        : ""
     }
 
-    console.log(
-      "[event-register-notify] event found",
-      ev.id,
-      ev.title,
-    );
+${
+      ev.location
+        ? `
+<p>
+Locatie:
+${ev.location}
+</p>
+`
+        : ""
+    }
 
-    console.log(
-      "[event-register-notify] sending email",
-    );
+${
+      ev.description
+        ? `
+<p>
+${ev.description}
+</p>
+`
+        : ""
+    }
+
+${
+      mapsUrl
+        ? `
+<p>
+<a href="${mapsUrl}">
+Open locatie
+</a>
+</p>
+`
+        : ""
+    }
+
+<p>
+<a href="${AGENDA_URL}">
+Bekijk mijn aanmeldingen
+</a>
+</p>
+
+<p>
+Agenda bestand volgt
+in volgende stap
+</p>
+`;
 
     const res =
       await fetch(
@@ -192,7 +180,6 @@ Deno.serve(async (req) => {
               `Bearer ${Deno.env.get(
                 "RESEND_API_KEY",
               )}`,
-
             "Content-Type":
               "application/json",
           },
@@ -204,21 +191,13 @@ Deno.serve(async (req) => {
                   "Businessclub Al Islah <info@businessclub-alislah.nl>",
 
                 to: [
-                  recipient,
+                  user.email,
                 ],
 
                 subject:
-                  `TEST event mail - ${ev.title}`,
+                  `Bevestiging aanmelding – ${ev.title}`,
 
-                html:
-                  `
-                  <h1>Test</h1>
-
-                  <p>
-                  Event:
-                  ${ev.title}
-                  </p>
-                  `,
+                html,
               },
             ),
         },
@@ -229,42 +208,14 @@ Deno.serve(async (req) => {
       res.status,
     );
 
-    if (!res.ok) {
-      const txt =
-        await res.text();
-
-      console.error(
-        "[event-register-notify] resend",
-        res.status,
-        txt,
-      );
-
-      return json(
-        {
-          error:
-            txt,
-        },
-        502,
-      );
-    }
-
     return json({
       ok: true,
     });
   } catch (e) {
-    console.error(
-      "[event-register-notify]",
-      e,
-    );
+    console.error(e);
 
     return json(
-      {
-        error:
-          e instanceof
-          Error
-            ? e.message
-            : "Unexpected",
-      },
+      { ok: false },
       500,
     );
   }
