@@ -17,91 +17,172 @@ function json(body: unknown, status = 200) {
   });
 }
 
+const SITE_URL =
+  "https://businessclub-alislah.nl";
+
 const AGENDA_URL =
-  "https://businessclub-alislah.nl/portaal/agenda";
+  `${SITE_URL}/portaal/agenda`;
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(
-      "ok",
-      { headers: corsHeaders },
-    );
-  }
+function fmt(d: Date) {
+  return d
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d+/,"");
+}
 
-  try {
-    const authHeader =
-      req.headers.get(
-        "Authorization",
-      ) ?? "";
+function buildIcs(
+  title:string,
+  desc:string,
+  location:string,
+  start:Date,
+  end?:Date,
+) {
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "BEGIN:VEVENT",
+    `UID:${crypto.randomUUID()}`,
+    `DTSTART:${fmt(start)}`,
+    end
+      ? `DTEND:${fmt(end)}`
+      : "",
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${desc}`,
+    `LOCATION:${location}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ]
+  .filter(Boolean)
+  .join("\r\n");
+}
 
-    const body =
-      await req.json();
+Deno.serve(async (req)=>{
 
-    const eventId =
-      body.event_id;
+if(req.method==="OPTIONS"){
+return new Response(
+"ok",
+{headers:corsHeaders},
+);
+}
 
-    const admin =
-      createClient(
-        Deno.env.get(
-          "SUPABASE_URL",
-        )!,
-        Deno.env.get(
-          "SUPABASE_SERVICE_ROLE_KEY",
-        )!,
-      );
+try{
 
-    const {
-      data: userData,
-    } =
-      await admin.auth.getUser(
-        authHeader.replace(
-          "Bearer ",
-          "",
-        ),
-      );
+const authHeader=
+req.headers.get(
+"Authorization"
+)??"";
 
-    const user =
-      userData.user;
+const body=
+await req.json();
 
-    if (!user?.email) {
-      return json({
-        ok: true,
-      });
-    }
+const admin=
+createClient(
+Deno.env.get(
+"SUPABASE_URL"
+)!,
+Deno.env.get(
+"SUPABASE_SERVICE_ROLE_KEY"
+)!,
+);
 
-    const {
-      data: ev,
-    } = await admin
-      .from("events")
-      .select(
-        `
-        title,
-        description,
-        event_date,
-        end_time,
-        location
-      `,
-      )
-      .eq(
-        "id",
-        eventId,
-      )
-      .single();
+const {
+data:userData
+}=
+await admin.auth.getUser(
+authHeader.replace(
+"Bearer ",
+"",
+),
+);
 
-    const mapsUrl =
-      ev.location
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            ev.location,
-          )}`
-        : "";
+const user=
+userData.user;
 
-    const html = `
+if(
+!user?.email
+){
+return json({
+ok:true
+});
+}
+
+const {
+data:ev
+}=
+await admin
+.from("events")
+.select(`
+title,
+description,
+event_date,
+end_time,
+location
+`)
+.eq(
+"id",
+body.event_id,
+)
+.single();
+
+const start=
+new Date(
+ev.event_date,
+);
+
+let end:
+Date|undefined;
+
+if(
+ev.end_time
+){
+const[
+h,
+m
+]=String(
+ev.end_time
+)
+.split(":")
+.map(Number);
+
+end=
+new Date(
+start,
+);
+
+end.setHours(
+h||0,
+m||0,
+0,
+0,
+);
+}
+
+const maps=
+ev.location
+?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`
+:"";
+
+const ics=
+buildIcs(
+ev.title,
+ev.description??"",
+ev.location??"",
+start,
+end,
+);
+
+const ics64=
+btoa(
+ics,
+);
+
+const html=`
+
 <h2>
 Aanmelding bevestigd
 </h2>
 
 <p>
-Je bent aangemeld voor:
 <strong>
 ${ev.title}
 </strong>
@@ -113,110 +194,126 @@ ${ev.event_date}
 </p>
 
 ${
-      ev.end_time
-        ? `
+ev.end_time
+?`
 <p>
 Eindtijd:
 ${ev.end_time}
 </p>
 `
-        : ""
-    }
+:""
+}
 
 ${
-      ev.location
-        ? `
+ev.location
+?`
 <p>
 Locatie:
 ${ev.location}
 </p>
 `
-        : ""
-    }
+:""
+}
 
 ${
-      ev.description
-        ? `
+ev.description
+?`
 <p>
 ${ev.description}
 </p>
 `
-        : ""
-    }
+:""
+}
 
 ${
-      mapsUrl
-        ? `
+maps
+?`
 <p>
-<a href="${mapsUrl}">
+<a href="${maps}">
 Open locatie
 </a>
 </p>
 `
-        : ""
-    }
+:""
+}
+
+<p>
+Agenda bestand
+bijgevoegd
+</p>
 
 <p>
 <a href="${AGENDA_URL}">
-Bekijk mijn aanmeldingen
+Bekijk mijn
+aanmeldingen
 </a>
-</p>
-
-<p>
-Agenda bestand volgt
-in volgende stap
 </p>
 `;
 
-    const res =
-      await fetch(
-        "https://api.resend.com/emails",
-        {
-          method:
-            "POST",
+const res=
+await fetch(
+"https://api.resend.com/emails",
+{
+method:"POST",
 
-          headers: {
-            Authorization:
-              `Bearer ${Deno.env.get(
-                "RESEND_API_KEY",
-              )}`,
-            "Content-Type":
-              "application/json",
-          },
+headers:{
+Authorization:
+`Bearer ${
+Deno.env.get(
+"RESEND_API_KEY"
+)
+}`,
+"Content-Type":
+"application/json",
+},
 
-          body:
-            JSON.stringify(
-              {
-                from:
-                  "Businessclub Al Islah <info@businessclub-alislah.nl>",
+body:
+JSON.stringify(
+{
+from:
+"Businessclub Al Islah <info@businessclub-alislah.nl>",
 
-                to: [
-                  user.email,
-                ],
+to:[
+user.email
+],
 
-                subject:
-                  `Bevestiging aanmelding – ${ev.title}`,
+subject:
+`Bevestiging aanmelding – ${ev.title}`,
 
-                html,
-              },
-            ),
-        },
-      );
+html,
 
-    console.log(
-      "[event-register-notify] resend response",
-      res.status,
-    );
+attachments:[
+{
+filename:
+"event.ics",
 
-    return json({
-      ok: true,
-    });
-  } catch (e) {
-    console.error(e);
+content:
+ics64,
+},
+],
+},
+),
+},
+);
 
-    return json(
-      { ok: false },
-      500,
-    );
-  }
+console.log(
+"[event-register-notify] resend response",
+res.status,
+);
+
+return json({
+ok:true
+});
+
+}catch(e){
+
+console.error(e);
+
+return json(
+{ok:false},
+500,
+);
+
+}
+
 });
