@@ -13,6 +13,7 @@ import {
   Upload,
   User as UserIcon,
   Globe,
+  Mail,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/documenten")({
@@ -47,6 +48,7 @@ function AdminDocumentenPage() {
   const [editing, setEditing] = useState<DocumentRow | { mode: "new"; isPublic: boolean } | null>(
     null,
   );
+  const [mailing, setMailing] = useState<DocumentRow | null>(null);
 
   async function load() {
     setLoading(true);
@@ -127,6 +129,7 @@ function AdminDocumentenPage() {
             onEdit={setEditing}
             onDelete={remove}
             onDownload={download}
+            onMail={setMailing}
             empty="Nog geen privé documenten."
           />
           <Section
@@ -139,6 +142,7 @@ function AdminDocumentenPage() {
             onEdit={setEditing}
             onDelete={remove}
             onDownload={download}
+            onMail={setMailing}
             empty="Nog geen algemene documenten."
           />
         </>
@@ -156,6 +160,14 @@ function AdminDocumentenPage() {
           }}
         />
       )}
+
+      {mailing && (
+        <MailDialog
+          doc={mailing}
+          memberMap={memberMap}
+          onClose={() => setMailing(null)}
+        />
+      )}
     </AdminShell>
   );
 }
@@ -170,6 +182,7 @@ function Section({
   onEdit,
   onDelete,
   onDownload,
+  onMail,
   empty,
 }: {
   title: string;
@@ -181,6 +194,7 @@ function Section({
   onEdit: (d: DocumentRow) => void;
   onDelete: (d: DocumentRow) => void;
   onDownload: (d: DocumentRow) => void;
+  onMail: (d: DocumentRow) => void;
   empty: string;
 }) {
   return (
@@ -243,6 +257,12 @@ function Section({
                       className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary"
                     >
                       <Download size={14} /> Downloaden
+                    </button>
+                    <button
+                      onClick={() => onMail(d)}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+                    >
+                      <Mail size={14} /> Verstuur per mail
                     </button>
                     <button
                       onClick={() => onEdit(d)}
@@ -482,6 +502,160 @@ function DocumentDialog({
               className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-[var(--accent-light)] disabled:opacity-60"
             >
               {busy && <Loader2 size={14} className="animate-spin" />} Opslaan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function MailDialog({
+  doc,
+  memberMap,
+  onClose,
+}: {
+  doc: DocumentRow;
+  memberMap: Map<string, Member>;
+  onClose: () => void;
+}) {
+  const [subject, setSubject] = useState(
+    `Businessclub Al Islah – ${doc.title}`,
+  );
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [err, setErr] = useState("");
+
+  const recipientInfo = doc.is_public
+    ? "Alle actieve leden"
+    : (() => {
+        const m = doc.member_id ? memberMap.get(doc.member_id) : null;
+        return m
+          ? `${m.full_name ?? m.email ?? doc.member_id}${m.company_name ? ` (${m.company_name})` : ""}`
+          : (doc.member_id ?? "—");
+      })();
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    if (!subject.trim()) {
+      setErr("Onderwerp is verplicht.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const res = await fetch(
+        "https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/document-mail-send",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            document_id: doc.id,
+            subject: subject.trim(),
+            message: message.trim(),
+          }),
+        },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json?.error ?? "Versturen mislukt");
+      }
+      setResult(
+        `Verstuurd naar ${json.sent ?? 0} ontvanger(s)${
+          json.failed ? `, ${json.failed} mislukt` : ""
+        }.`,
+      );
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Versturen mislukt");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-background p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-xl font-bold">
+            Document versturen per mail
+          </h2>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="mb-4 rounded-md border border-border bg-secondary/40 p-3 text-xs">
+          <p>
+            <strong>Bijlage:</strong> {doc.file_name}
+          </p>
+          <p className="mt-1">
+            <strong>Ontvangers:</strong> {recipientInfo}
+          </p>
+        </div>
+
+        <form onSubmit={send} className="space-y-4">
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">Titel</span>
+            <input
+              value={doc.title}
+              readOnly
+              className="w-full rounded-md border border-input bg-secondary/40 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">Onderwerp *</span>
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              maxLength={200}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium">
+              Persoonlijk bericht
+            </span>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={5}
+              maxLength={5000}
+              placeholder="Optioneel bericht aan de ontvangers…"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </label>
+          {err && <p className="text-sm text-rose-700">{err}</p>}
+          {result && <p className="text-sm text-emerald-700">{result}</p>}
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+            >
+              Sluiten
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-[var(--accent-light)] disabled:opacity-60"
+            >
+              {busy && <Loader2 size={14} className="animate-spin" />}
+              <Mail size={14} /> Verstuur
             </button>
           </div>
         </form>

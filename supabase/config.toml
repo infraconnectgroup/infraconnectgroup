@@ -7,3 +7,6 @@ verify_jwt = false
 
 [functions.event-register-notify]
 verify_jwt = true
+
+[functions.document-mail-send]
+verify_jwt = true
