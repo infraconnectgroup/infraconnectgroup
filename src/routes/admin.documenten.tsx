@@ -13,6 +13,7 @@ import {
   Upload,
   User as UserIcon,
   Globe,
+  Mail,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/documenten")({
@@ -47,6 +48,7 @@ function AdminDocumentenPage() {
   const [editing, setEditing] = useState<DocumentRow | { mode: "new"; isPublic: boolean } | null>(
     null,
   );
+  const [mailing, setMailing] = useState<DocumentRow | null>(null);
 
   async function load() {
     setLoading(true);
@@ -127,6 +129,7 @@ function AdminDocumentenPage() {
             onEdit={setEditing}
             onDelete={remove}
             onDownload={download}
+            onMail={setMailing}
             empty="Nog geen privé documenten."
           />
           <Section
@@ -139,6 +142,7 @@ function AdminDocumentenPage() {
             onEdit={setEditing}
             onDelete={remove}
             onDownload={download}
+            onMail={setMailing}
             empty="Nog geen algemene documenten."
           />
         </>
@@ -156,6 +160,14 @@ function AdminDocumentenPage() {
           }}
         />
       )}
+
+      {mailing && (
+        <MailDialog
+          doc={mailing}
+          memberMap={memberMap}
+          onClose={() => setMailing(null)}
+        />
+      )}
     </AdminShell>
   );
 }
@@ -170,6 +182,7 @@ function Section({
   onEdit,
   onDelete,
   onDownload,
+  onMail,
   empty,
 }: {
   title: string;
@@ -181,6 +194,7 @@ function Section({
   onEdit: (d: DocumentRow) => void;
   onDelete: (d: DocumentRow) => void;
   onDownload: (d: DocumentRow) => void;
+  onMail: (d: DocumentRow) => void;
   empty: string;
 }) {
   return (
@@ -243,6 +257,12 @@ function Section({
                       className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary"
                     >
                       <Download size={14} /> Downloaden
+                    </button>
+                    <button
+                      onClick={() => onMail(d)}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+                    >
+                      <Mail size={14} /> Verstuur per mail
                     </button>
                     <button
                       onClick={() => onEdit(d)}
