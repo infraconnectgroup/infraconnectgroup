@@ -39,6 +39,7 @@ function renderEmail(opts: {
   description: string;
   message: string;
   fileName: string;
+  isPublic: boolean;
 }) {
   const primary = "#248eb7";
   const accent = "#bd8d2b";
@@ -48,9 +49,11 @@ function renderEmail(opts: {
         opts.message,
       )}</div>`
     : "";
-  const descHtml = opts.description
-    ? `<p style="line-height:1.7;color:#444;">${escapeHtml(opts.description)}</p>`
-    : "";
+  const badgeLabel = opts.isPublic
+    ? "Nieuwsbrief"
+    : "Privé document";
+  const badgeBg = opts.isPublic ? "#e6f3f8" : "#fef3c7";
+  const badgeColor = opts.isPublic ? primary : "#92400e";
   return `<!DOCTYPE html><html lang="nl"><body style="margin:0;padding:0;background:#f3f4f6;">
 <table width="100%" style="background:#f3f4f6;padding:32px 16px;"><tr><td align="center">
 <table width="620" style="max-width:620px;width:100%;">
@@ -60,15 +63,11 @@ function renderEmail(opts: {
 </td></tr>
 <tr><td style="background:white;border-radius:24px;padding:42px 36px;font-family:Arial,sans-serif;">
 <div align="center" style="margin-bottom:20px;">
-<span style="background:#e6f3f8;color:${primary};padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;">Nieuw document</span>
+<span style="background:${badgeBg};color:${badgeColor};padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;">${escapeHtml(badgeLabel)}</span>
 </div>
 <h1 style="font-size:26px;text-align:center;margin:0 0 24px;color:#111;">${escapeHtml(opts.title)}</h1>
-${descHtml}
 ${msgHtml}
 <p style="font-size:13px;color:#64748b;margin-top:20px;">Bijlage: <strong>${escapeHtml(opts.fileName)}</strong></p>
-<div style="text-align:center;padding-top:24px;">
-<a href="${PORTAL_URL}" style="display:inline-block;background:${accent};color:white;padding:14px 22px;border-radius:12px;text-decoration:none;font-weight:600;">Bekijk in portaal</a>
-</div>
 </td></tr>
 </table></td></tr></table>
 </body></html>`;
