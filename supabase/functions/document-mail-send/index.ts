@@ -30,6 +30,10 @@ function escapeHtml(s: string) {
     .replace(/"/g, "&quot;");
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 function renderEmail(opts: {
   title: string;
   description: string;
