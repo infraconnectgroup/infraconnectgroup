@@ -210,9 +210,14 @@ Deno.serve(async (req) => {
     // Batch send (one email per recipient for privacy)
     let sent = 0;
     let failed = 0;
-    const BATCH = 10;
+    const BATCH = 4;
     for (let i = 0; i < uniqueRecipients.length; i += BATCH) {
       const slice = uniqueRecipients.slice(i, i + BATCH);
+      console.log("[document-mail-send] batch start", {
+        batchNumber: Math.floor(i / BATCH) + 1,
+        batchSize: slice.length,
+      });
+
       const results = await Promise.allSettled(
         slice.map((to) =>
           fetch("https://api.resend.com/emails", {
@@ -242,7 +247,16 @@ Deno.serve(async (req) => {
           console.error("[document-mail-send] send failed:", r.reason);
         }
       }
+
+      if (i + BATCH < uniqueRecipients.length) {
+        await sleep(1000);
+      }
     }
+
+    console.log("[document-mail-send] batch end", {
+      totalSent: sent,
+      totalFailed: failed,
+    });
 
     return json({ ok: true, sent, failed, total: uniqueRecipients.length });
   } catch (e) {
