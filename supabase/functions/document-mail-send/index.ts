@@ -204,6 +204,7 @@ Deno.serve(async (req) => {
       description: doc.description ?? "",
       message,
       fileName: doc.file_name,
+      isPublic: doc.is_public,
     });
 
     // Batch send (one email per recipient for privacy)
