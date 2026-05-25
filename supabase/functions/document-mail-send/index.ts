@@ -13,7 +13,7 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://businessclub-alislah.nl";
-const PORTAL_URL = `${SITE_URL}/portaal/documenten`;
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
