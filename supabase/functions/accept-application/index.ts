@@ -322,7 +322,7 @@ function renderOnboardingEmail(d: OnboardingEmailData): string {
                 <tr>
                   <td align="center" style="padding:16px 0 8px 0;">
                     <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.25;color:#0f172a;font-weight:700;">
-                      Welkom, ${safeName}
+                      Welkom ${safeName},
                     </h1>
                   </td>
                 </tr>
