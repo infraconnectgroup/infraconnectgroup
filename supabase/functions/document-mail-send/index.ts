@@ -50,7 +50,7 @@ function renderEmail(opts: {
       )}</div>`
     : "";
   const badgeLabel = opts.isPublic
-    ? "Nieuwsbrief"
+    ? "Algemene document"
     : "Privé document";
   const badgeBg = opts.isPublic ? "#e6f3f8" : "#fef3c7";
   const badgeColor = opts.isPublic ? primary : "#92400e";
