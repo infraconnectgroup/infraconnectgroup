@@ -103,19 +103,48 @@ Deno.serve(async (req) => {
     if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json();
+    console.log("[document-mail-send] body", body);
     const documentId: string = body.document_id;
     const subject: string = String(body.subject ?? "").slice(0, 200);
     const message: string = String(body.message ?? "").slice(0, 5000);
+    console.log("[document-mail-send] documentId", documentId);
     if (!documentId || !subject)
       return json({ error: "Missing fields" }, 400);
 
-    // Fetch document
+    // Fetch document by id only
+    console.log("[document-mail-send] document query", { table: "documents", id: documentId });
     const { data: doc, error: docErr } = await admin
       .from("documents")
-      .select("*")
+      .select(`
+        id,
+        title,
+        description,
+        storage_path,
+        file_name,
+        is_public,
+        member_id
+      `)
       .eq("id", documentId)
-      .single();
-    if (docErr || !doc) return json({ error: "Document not found" }, 404);
+      .maybeSingle();
+
+    if (docErr) {
+      console.error("[document-mail-send] document error", docErr);
+      return json({ error: "Document lookup failed: " + docErr.message }, 500);
+    }
+    if (!doc) {
+      console.error("[document-mail-send] document not found", documentId);
+      return json({ error: "Document not found", documentId }, 404);
+    }
+    console.log("[document-mail-send] document result", {
+      id: doc.id,
+      title: doc.title,
+      storage_path: doc.storage_path,
+    });
+
+    if (!doc.storage_path) {
+      console.error("[document-mail-send] empty storage_path", doc.id);
+      return json({ error: "Document has no storage_path" }, 400);
+    }
 
     // Determine recipients server-side
     const recipients: string[] = [];
