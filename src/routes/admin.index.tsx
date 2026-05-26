@@ -268,7 +268,7 @@ function ApplicationCard({ app, onChange }: { app: Application; onChange: () => 
             <Detail label="Telefoon" value={vw.phone} />
             <Detail label="KvK-nummer" value={vw.kvk} />
             <Detail label="Pakket" value={vw.tier} />
-            <Detail label="Aangemeld op" value={new Date(app.created_at).toLocaleString("nl-NL",{timeZone:"Europe/Amsterdam",})} />
+            <Detail label="Aangemeld op" value={new Date(app.created_at).toLocaleString("nl-NL")} />
           </dl>
           <div className="mt-4">
             <div className="text-xs font-semibold uppercase text-muted-foreground">Motivatie</div>
