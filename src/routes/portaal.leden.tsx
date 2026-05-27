@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Mail, Phone, Search, Globe } from "lucide-react";
+import { Mail, Phone, Search, Globe, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/portaal/leden")({
@@ -28,17 +28,23 @@ function MembersPage() {
   const [items, setItems] = useState<Profile[]>([]);
   const [q, setQ] = useState("");
   const [active, setActive] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void (async () => {
+      setLoading(true);
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
       const res = await fetch("https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/list-members", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json().catch(() => ({}));
       setItems((json?.members as Profile[]) ?? []);
+      setLoading(false);
     })();
   }, []);
 
@@ -103,7 +109,12 @@ function MembersPage() {
             <div className="mt-4 text-xs text-muted-foreground">Bekijk profiel →</div>
           </button>
         ))}
-        {filtered.length === 0 && (
+        {loading && (
+          <div className="col-span-full flex justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
           <p className="col-span-full rounded-xl border border-dashed border-border bg-background p-10 text-center text-sm text-muted-foreground">Geen leden gevonden.</p>
         )}
       </div>
