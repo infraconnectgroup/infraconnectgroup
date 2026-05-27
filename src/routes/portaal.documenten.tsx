@@ -67,7 +67,7 @@ function PortalDocumentenPage() {
       .from("documents")
       .createSignedUrl(
         doc.storage_path,
-        5 // korte geldigheid voor bekijken
+        60 // korte geldigheid voor bekijken
       );
 
     if (error || !data?.signedUrl) {
