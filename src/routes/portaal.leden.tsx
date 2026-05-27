@@ -28,17 +28,23 @@ function MembersPage() {
   const [items, setItems] = useState<Profile[]>([]);
   const [q, setQ] = useState("");
   const [active, setActive] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void (async () => {
+      setLoading(true);
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
       const res = await fetch("https://mzgobfulqqabznqflhjq.supabase.co/functions/v1/list-members", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json().catch(() => ({}));
       setItems((json?.members as Profile[]) ?? []);
+      setLoading(false);
     })();
   }, []);
 
