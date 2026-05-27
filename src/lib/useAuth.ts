@@ -44,7 +44,6 @@ export function useAuth() {
         .eq("user_id", userId);
       if (error) console.error("[useAuth] role fetch error:", error);
       const roles = (data ?? []).map((r: { role: string }) => r.role);
-      console.log("[useAuth] roles for", userId, roles);
       setRole(roles.includes("admin") ? "admin" : roles.includes("lid") ? "lid" : null);
       setLoading(false);
     }
