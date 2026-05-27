@@ -109,7 +109,12 @@ function MembersPage() {
             <div className="mt-4 text-xs text-muted-foreground">Bekijk profiel →</div>
           </button>
         ))}
-        {filtered.length === 0 && (
+        {loading && (
+          <div className="col-span-full flex justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
           <p className="col-span-full rounded-xl border border-dashed border-border bg-background p-10 text-center text-sm text-muted-foreground">Geen leden gevonden.</p>
         )}
       </div>
